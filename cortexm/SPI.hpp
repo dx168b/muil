@@ -205,7 +205,8 @@ public:
 
 	static uint16_t write_and_read(uint16_t value)
 	{
-		SPI1->SR &= ~SPI_SR_RXNE;
+		while (!(SPI1->SR & SPI_SR_TXE)) {}
+		volatile uint8_t tmp = SPI1->DR;
 		SPI1->DR = value;
 		while (!(SPI1->SR & SPI_SR_RXNE)) {}
 		return SPI1->DR;
@@ -213,9 +214,16 @@ public:
 
 	static void write(uint16_t value)
 	{
-		SPI1->DR = value;
 		while (!(SPI1->SR & SPI_SR_TXE)) {}
+		SPI1->DR = value;
 	}
+
+	static void cs_high()
+	{
+		while (!(SPI1->SR & SPI_SR_TXE) || (SPI1->SR & SPI_SR_BSY)) {}
+		CSPin::On();
+	}
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -691,16 +691,17 @@ void Application::process_touch_screen_events()
 
 	if (active_form_)
 	{
-		if (flags_.get(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM))
-		{
-			flags_.clear(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM);
-			active_form_->paint(true, false);
-		}
-
 		if (flags_.get(FLAG_PAINT_ACTIVE_FORM))
 		{
 			flags_.clear(FLAG_PAINT_ACTIVE_FORM);
 			active_form_->paint(false, true);
+			flags_.clear(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM);
+		}
+
+		if (flags_.get(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM))
+		{
+			flags_.clear(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM);
+			active_form_->paint(true, false);
 		}
 	}
 
