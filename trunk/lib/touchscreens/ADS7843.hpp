@@ -72,9 +72,6 @@ private:
 template<class SPI, class PressedPin>
 void ADS7843TouchScreen<SPI, PressedPin>::init()
 {
-	SPI::init_pins(8, CS_Soft);
-	PressedPin::Mode(INPUTPULLED);
-	PressedPin::PullUp();
 }
 
 template<class SPI, class PressedPin>
