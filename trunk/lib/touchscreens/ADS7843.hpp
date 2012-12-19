@@ -50,7 +50,7 @@ private:
 	};
 
 	void wait_for_press();
-	static void paint_pess_point(Display &display, Point pt, bool pressed);
+	static void paint_pess_point(Display &display, Point pt, const Color &color);
 	static int16_t read_coord(uint8_t cmd);
 	static void get_filtered_coords(int16_t &x, int16_t &y);
 	static int16_t get_filtered_value(int16_t *values);
@@ -111,6 +111,8 @@ Point ADS7843TouchScreen<SPI, PressedPin>::get_pos()
 template<class SPI, class PressedPin>
 void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms)
 {
+	const Color bg_color = Color::white();
+
 	Size disp_size = display.get_size();
 
 	Point display_points[3];
@@ -119,21 +121,24 @@ void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const Font
 	display_points[1] = Point(disp_size.width/2, 9*disp_size.height/10);
 	display_points[2] = Point(9*disp_size.width/10, disp_size.height/2);
 
+	display.fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), bg_color);
+
 	for (size_t i = 0; i < 3; i++)
 	{
 		for (;;)
 		{
-			display.fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), Color::white());
 			display.paint_text(font, 1, 1, text, Color::black());
+			paint_pess_point(display, display_points[i], Color::blue());
 
-			paint_pess_point(display, display_points[i], false);
 			while (is_pressed());
 			wait_for_press();
 			delay_ms(50);
-			paint_pess_point(display, display_points[i], true);
+			paint_pess_point(display, display_points[i], Color::red());
 			get_filtered_coords(touchscreen_points[i].x, touchscreen_points[i].y);
 			delay_ms(500);
-			while (is_pressed());
+			while (is_pressed()) {}
+			paint_pess_point(display, display_points[i], bg_color);
+
 			if ((touchscreen_points[i].x != -1) && (touchscreen_points[i].y != -1)) break;
 		}
 	}
@@ -142,10 +147,9 @@ void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const Font
 }
 
 template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::paint_pess_point(Display &display, Point pt, bool pressed)
+void ADS7843TouchScreen<SPI, PressedPin>::paint_pess_point(Display &display, Point pt, const Color &color)
 {
 	int16_t line_size = display.get_dpi()/10;
-	Color color = pressed ? Color::red() : Color::blue();
 	display.fill_rect(Rect(pt.x-1, pt.y-line_size, pt.x+1, pt.y+line_size), color);
 	display.fill_rect(Rect(pt.x-line_size, pt.y-1, pt.x+line_size, pt.y+1), color);
 }
