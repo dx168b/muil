@@ -131,10 +131,7 @@ private:
 template <typename SPI, typename ResetPin>
 void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds))
 {
-	ResetPin::Mode(OUTPUT);
-	SPI::init_pins(8, CS_Soft, CPHA_2Edge, CPOL_High);
 	delay_ms(50);
-
 	ResetPin::On();
 	delay_ms(50);
 	ResetPin::Off();
