@@ -653,6 +653,7 @@ void Application::run()
 void Application::set_active_form(Form *active_form)
 {
 	active_form_ = active_form;
+	flags_.clear(FLAG_PREV_TOUCH_SCREEN_PRESSED);
 	flags_.set(FLAG_PAINT_ACTIVE_FORM, true);
 }
 
