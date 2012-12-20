@@ -378,7 +378,7 @@ public:
 protected:
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 	int16_t paint_item(int item_index, PaintData &paint_data, const Rect &client_rect);
-	int16_t get_item_geight() const;
+	int16_t get_item_height() const;
 
 private:
 	IStringItemsProvider *items_provider_;
