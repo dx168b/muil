@@ -560,7 +560,7 @@ void WidgetsForm::paint_client_area(PaintData &paint_data, const Rect &client_re
 void StringSelectorForm::handle_touch_screen_event(EventType type, const Point pt)
 {
 	int16_t capt_height = get_caption_height();
-	int16_t item_height = get_item_geight();
+	int16_t item_height = get_item_height();
 
 	int index = top_item_index_ + (pt.y-capt_height) / item_height;
 	if (index < 0) return;
@@ -606,7 +606,7 @@ int16_t StringSelectorForm::paint_item(int item_index, PaintData &paint_data, co
 	if (item_index < 0) return -1;
 	if (item_index >= (int)items_provider_->get_items_count()) return -1;
 
-	int item_height = get_item_geight();
+	int item_height = get_item_height();
 	int y1 = client_rect.y1 + item_index * item_height;
 	int y2 = y1 + item_height;
 
@@ -623,7 +623,7 @@ int16_t StringSelectorForm::paint_item(int item_index, PaintData &paint_data, co
 	return y2;
 }
 
-int16_t StringSelectorForm::get_item_geight() const
+int16_t StringSelectorForm::get_item_height() const
 {
 	return 3*get_font()->heightPages/2;
 }
