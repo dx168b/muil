@@ -368,12 +368,13 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, Form *form
 	switch (type)
 	{
 	case EVENT_TOUCHSCREEN_UP:
-		flags_.clear(FLAG_UP_BTN_PRESSED);
+		do { flags_.clear(FLAG_UP_BTN_PRESSED); // "do" used to prevent static analyze warning about missing "break"
 		flags_.clear(FLAG_DOWN_BTN_PRESSED);
 
 	case EVENT_TOUCHSCREEN_REPEATED:
 		if (hit_up_btn) set_value(value_ + 1);
 		if (hit_down_btn) set_value(value_ - 1);
+		} while (false);
 		break;
 
 	case EVENT_TOUCHSCREEN_DOWN:
