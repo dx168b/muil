@@ -28,7 +28,6 @@
 #ifndef SPI_HPP_FILE_INCLUDED_
 #define SPI_HPP_FILE_INCLUDED_
 
-#include "pin.h"
 #include "stm32f10x_spi.h"
 
 enum CSMode
@@ -52,96 +51,65 @@ enum CPOL
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename CSPin> class SPIBase
-{
-public:
-	static void cs_high()
-	{
-		CSPin::On();
-	}
-
-	static void cs_low()
-	{
-		CSPin::Off();
-	}
-
-protected:
-	static void init_cs_pin()
-	{
-		CSPin::Mode(OUTPUT);
-		CSPin::On();
-	}
-
-	static bool use_soft_cs_;
-};
-
-template <typename CSPin>
-bool SPIBase<CSPin>::use_soft_cs_ = false;
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <
+	unsigned Delay,
 	typename MOSIPin,
 	typename MISOPin,
 	typename SCKPin,
 	typename CSPin
 >
-class SoftwareSPI : public SPIBase<CSPin>
+class SoftwareSPI
 {
 public:
-	static void init_pins(uint8_t bits_count, CSMode cs);
+	static void init(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol);
 	static uint16_t write_and_read(uint16_t value);
 	static void write(uint16_t value);
+	static void cs_high() { CSPin::On(); }
+	static void cs_low() { CSPin::Off(); }
 
 private:
 	static uint8_t bits_count_;
-
-	using SPIBase<CSPin>::use_soft_cs_;
+	static bool use_soft_cs_;
 };
 
-template <typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-uint8_t SoftwareSPI<MOSIPin, MISOPin, SCKPin, CSPin>::bits_count_ = 0;
+template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
+uint8_t SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::bits_count_ = 0;
 
-template <typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-void SoftwareSPI<MOSIPin, MISOPin, SCKPin, CSPin>::init_pins(uint8_t bits_count, CSMode cs)
+template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
+bool SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::use_soft_cs_ = false;
+
+template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
+void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::init(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol)
 {
 	use_soft_cs_ = (cs == CS_Soft);
 	bits_count_ = bits_count;
-	MOSIPin::Mode(OUTPUT);
-	MOSIPin::Off();
-	MISOPin::Mode(INPUTPULLED);
-	MISOPin::PullUp();
-	SCKPin::Mode(OUTPUT);
-	SCKPin::Off();
-	SPIBase<CSPin>::init_cs_pin();
 }
 
-template <typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-uint16_t SoftwareSPI<MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(uint16_t value)
+template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
+uint16_t SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(uint16_t value)
 {
 	uint16_t result = 0;
-	if (!use_soft_cs_) SPIBase<CSPin>::cs_low();
+	if (!use_soft_cs_) CSPin::Off();
 	const uint16_t test_bit = 1 << (bits_count_-1);
 	for (uint8_t bit = 0; bit < bits_count_; bit++)
 	{
 		if (value & test_bit) MOSIPin::On();
 		else MOSIPin::Off();
-		for (volatile uint32_t i = 0; i < 3; i++);
+		for (volatile unsigned i = 0; i < Delay; i++);
 		value <<= 1;
 		SCKPin::On();
 		result <<= 1;
-		for (volatile uint32_t i = 0; i < 3; i++);
+		for (volatile unsigned i = 0; i < Delay; i++);
 		if (MISOPin::Signalled()) result |= 1;
 		SCKPin::Off();
 	}
-	if (!use_soft_cs_) SPIBase<CSPin>::cs_high();
+	if (!use_soft_cs_) CSPin::On();
 	return result;
 }
 
 
-template <typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-void SoftwareSPI<MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
+template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
+void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
 {
 	write_and_read(value);
 }
@@ -149,7 +117,7 @@ void SoftwareSPI<MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename CSPin>
-class HardwareSPI0 : public SPIBase<CSPin>
+class HardwareSPI0
 {
 public:
 	static void init_pins(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol)
@@ -199,11 +167,10 @@ public:
 
 		SPI_SSOutputCmd(SPI1, ENABLE);
 		SPI_Cmd(SPI1, ENABLE);
-
-		SPIBase<CSPin>::init_cs_pin();
 	}
 
-	static uint16_t write_and_read(uint16_t value)
+	template <typename T>
+	static T write_and_read(T value)
 	{
 		while (!(SPI1->SR & SPI_SR_TXE)) {}
 		volatile uint8_t tmp = SPI1->DR;
@@ -212,7 +179,8 @@ public:
 		return SPI1->DR;
 	}
 
-	static void write(uint16_t value)
+	template <typename T>
+	static void write(T value)
 	{
 		while (!(SPI1->SR & SPI_SR_TXE)) {}
 		SPI1->DR = value;
@@ -224,7 +192,17 @@ public:
 		CSPin::On();
 	}
 
+	static void cs_low()
+	{
+		CSPin::Off();
+	}
+
+private:
+	static bool use_soft_cs_;
 };
+
+template <typename CSPin>
+bool HardwareSPI0<CSPin>::use_soft_cs_ = false;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
