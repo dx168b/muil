@@ -562,8 +562,9 @@ void StringSelectorForm::handle_touch_screen_event(EventType type, const Point p
 	int16_t capt_height = get_caption_height();
 	int16_t item_height = get_item_height();
 
-	int index = top_item_index_ + (pt.y-capt_height) / item_height;
-	if (index < 0) return;
+	int16_t rel_y = (pt.y-capt_height);
+	if (rel_y < 0) return;
+	int index = top_item_index_ + rel_y / item_height;
 	if (index >= (int16_t)items_provider_->get_items_count()) return;
 
 	switch (type)
