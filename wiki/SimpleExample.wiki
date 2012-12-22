@@ -98,18 +98,28 @@ class MyApp : public Application
 	typedef Pin<'B', 14> TS_MISOPin;
 	typedef Pin<'B', 15> TS_MOSIPin;
 	typedef Pin<'C', 6> TS_IRQPin;
-	typedef SoftwareSPI<TS_MOSIPin, TS_MISOPin, TS_SCKPin, TS_CSPin> TS_SPI; // software SIP used
+	typedef SoftwareSPI<3, TS_MOSIPin, TS_MISOPin, TS_SCKPin, TS_CSPin> TS_SPI; // software SIP used
 	typedef ADS7843TouchScreen<TS_SPI, TS_IRQPin> TouchScreenDriver;
 
 public:
 	MyApp()
 	{
 		// Initialize pins and SPI for LCD
+		DisplayCSPin::Mode(OUTPUT);
+		DisplayCSPin::Off();
 		DisplayResetPin::Mode(OUTPUT);
 		LCD_SPI::init_pins(8, CS_Soft, CPHA_2Edge, CPOL_High);
 
 		// Initialize pins and SPI for touch screen
-		TS_SPI::init_pins(8, CS_Soft);
+		TS_SPI::init(8, CS_Soft, CPHA_1Edge, CPOL_Low);
+		TS_MOSIPin::Mode(OUTPUT);
+		TS_MOSIPin::Off();
+		TS_MISOPin::Mode(INPUTPULLED);
+		TS_MISOPin::PullUp();
+		TS_SCKPin::Mode(OUTPUT);
+		TS_SCKPin::Off();
+		TS_CSPin::Mode(OUTPUT);
+		TS_CSPin::On();
 		TS_IRQPin::Mode(INPUTPULLED);
 		TS_IRQPin::PullUp();
 
