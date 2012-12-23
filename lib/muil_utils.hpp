@@ -46,7 +46,7 @@ template <typename T> void swap(T &v1, T &v2)
 class Flags
 {
 public:
-	Flags() : flags_(0) {}
+	Flags(uint32_t initial_flags = 0) : flags_(initial_flags) {}
 
 	bool get(uint32_t flag) const { return flags_ & flag; }
 	void set(uint32_t flag, bool value) { flags_ = (flags_ & ~flag) | (value ? flag : 0); }

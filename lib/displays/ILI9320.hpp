@@ -47,8 +47,8 @@ public:
 
 	static void init(void (*delay_ms)(uint16_t millisoconds));
 
-	Size get_size();
-	uint16_t get_dpi();
+	Size get_size() const;
+	uint16_t get_dpi() const;
 	void set_point(int16_t x, int16_t y, const Color &color);
 	void fill_rect(const Rect &rect, const Color &color);
 	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
@@ -216,13 +216,13 @@ void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds)
 }
 
 template <typename SPI, typename ResetPin>
-Size ILI9320Display<SPI, ResetPin>::get_size()
+Size ILI9320Display<SPI, ResetPin>::get_size() const
 {
 	return Size(Width, Height);
 }
 
 template <typename SPI, typename ResetPin>
-uint16_t ILI9320Display<SPI, ResetPin>::get_dpi()
+uint16_t ILI9320Display<SPI, ResetPin>::get_dpi() const
 {
 	return 96;
 }

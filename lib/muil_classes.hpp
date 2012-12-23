@@ -70,6 +70,21 @@ struct Point
 	Point(int16_t x, int16_t y) : x(x), y(y) {}
 
 	Point moved(int16_t dx, int16_t dy) const { return Point(x + dx, y + dy); }
+
+	bool equals(const Point &other) const
+	{
+		return (x == other.x) && (y == other.y);
+	}
+
+	bool operator == (const Point &other) const
+	{
+		return equals(other);
+	}
+
+	bool operator != (const Point &other) const
+	{
+		return !equals(other);
+	}
 };
 
 struct Rect
@@ -103,17 +118,17 @@ struct FontCharInfo
 // Describes a single font
 struct FontInfo
 {
-	const uint8_t 			heightPages;	// height, in pages (8 pixels), of the font's characters
-	const uint8_t			spacePixels;	// number of pixels that a space character takes up
-	const FontCharInfo*	charInfo;		// pointer to array of char information
-	const uint8_t*			data;			// pointer to generated array of character visual representation
+	const uint8_t       heightPages; // height, in pages (8 pixels), of the font's characters
+	const uint8_t       spacePixels; // number of pixels that a space character takes up
+	const FontCharInfo* charInfo;    // pointer to array of char information
+	const uint8_t*      data;        // pointer to generated array of character visual representation
 };
 
 class Display
 {
 public:
-	virtual Size get_size() = 0;
-	virtual uint16_t get_dpi() = 0;
+	virtual Size get_size() const = 0;
+	virtual uint16_t get_dpi() const = 0;
 
 	virtual void set_point(int16_t x, int16_t y, const Color &color) = 0;
 	virtual void fill_rect(const Rect &rect, const Color &color) = 0;
