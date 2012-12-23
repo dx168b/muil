@@ -405,6 +405,7 @@ void Choice::paint(PaintData &paint_data)
 	paint_data.display.fill_rect(data_rect, paint_data.colors->ctrl_bg);
 	int selection = get_selection();
 	if (selection != -1)
+	{
 		paint_text_in_rect(
 			paint_data,
 			data_rect,
@@ -412,6 +413,7 @@ void Choice::paint(PaintData &paint_data)
 			get_item(selection),
 			paint_data.colors->form_text
 		);
+	}
 
 	paint_button(paint_data, btn_rect.inflated(1), flags_.get(FLAG_PRESSED), true);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
@@ -461,6 +463,13 @@ static const FormColors default_colors = {
 	Color::white()
 };
 
+struct FormTouchScreenEventData
+{
+	EventType type;
+	Point pt;
+	Display *display;
+};
+
 Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *colors) :
 	caption_     (caption),
 	font_        (font),
@@ -469,26 +478,19 @@ Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *color
 	colors_ = colors ? colors : &default_colors;
 }
 
-
-void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
+void Form::paint(Display *display, bool widgets_only, bool force_repaint_all_widgets)
 {
-	Application *app = Application::get_instance();
+	Rect caption_rect, client_rect;
 
-	if (app->get_active_form() != this) return;
+	get_form_rects(display, &caption_rect, &client_rect);
 
-	Display *display = app->get_display();
-	Size disp_size = display->get_size();
-	int16_t capt_height = get_caption_height();
-
-	Rect client_rect(0, capt_height, disp_size.width-1, disp_size.height-1);
 	PaintData paint_data(*display, font_, colors_);
 
 	if (!widgets_only)
 	{
-		Rect capt_rect(0, 0, disp_size.width-1, capt_height);
 		display->set_offset(Point(0, 0));
-		display->fill_rect(capt_rect, colors_->caption);
-		paint_text_in_rect(paint_data, capt_rect, HA_CENTER, caption_, colors_->caption_text);
+		display->fill_rect(caption_rect, colors_->caption);
+		paint_text_in_rect(paint_data, caption_rect, HA_CENTER, caption_, colors_->caption_text);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -499,36 +501,48 @@ int16_t Form::get_caption_height() const
 	return 3 * font_->heightPages / 2;
 }
 
+void Form::get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const
+{
+	Size disp_size = display->get_size();
+	int16_t capt_height = get_caption_height();
+	if (caption_rect) *caption_rect = Rect(0, 0, disp_size.width-1, capt_height-1);
+	if (client_rect) *client_rect = Rect(0, capt_height, disp_size.width-1, disp_size.height-1);
+}
+
 void Form::show()
 {
-	Application::get_instance()->set_active_form(this);
+	Application *app = Application::get_instance();
+	before_show(*app->get_display());
+	app->set_active_form(this);
 }
 
 ModalResult Form::show_modal()
 {
-	Form *prev_form = Application::get_instance()->get_active_form();
+	Application *app = Application::get_instance();
+
+	Form *prev_form = app->get_active_form();
 
 	show();
 
 	modal_result_ = MR_NONE;
 	while (modal_result_ == MR_NONE)
-		Application::get_instance()->process_touch_screen_events();
+		app->process_touch_screen_events();
 
-	Application::get_instance()->set_active_form(prev_form);
+	app->set_active_form(prev_form);
 
 	return modal_result_;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WidgetsForm::handle_touch_screen_event(EventType type, const Point pt)
+void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data)
 {
-	if (type == EVENT_TOUCHSCREEN_UP)
+	if (event_data.type == EVENT_TOUCHSCREEN_UP)
 	{
 		if (last_pressed_widget_)
 		{
 			const Point widget_pos = last_pressed_widget_->get_pos();
-			const Point up_rel_pos = pt.moved(-widget_pos.x, -widget_pos.y);
+			const Point up_rel_pos = event_data.pt.moved(-widget_pos.x, -widget_pos.y);
 			last_pressed_widget_->touch_screen_event(EVENT_TOUCHSCREEN_UP, up_rel_pos, this);
 			const Rect widget_rect(Point(0, 0), last_pressed_widget_->get_size());
 			if (widget_rect.contains(up_rel_pos)) widget_event(EVENT_TOUCHSCREEN_UP, last_pressed_widget_);
@@ -537,11 +551,11 @@ void WidgetsForm::handle_touch_screen_event(EventType type, const Point pt)
 	}
 	else
 	{
-		TouchScreenPressVisitor touch_screen_visitor(*this, type, pt, &last_pressed_widget_);
+		TouchScreenPressVisitor touch_screen_visitor(*this, event_data.type, event_data.pt, &last_pressed_widget_);
 		visit_all_widgets(touch_screen_visitor);
 	}
 
-	touch_screen_event(type, pt);
+	touch_screen_event(event_data);
 }
 
 void WidgetsForm::paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets)
@@ -557,25 +571,73 @@ void WidgetsForm::paint_client_area(PaintData &paint_data, const Rect &client_re
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void StringSelectorForm::handle_touch_screen_event(EventType type, const Point pt)
+struct StringSelectorFormData
 {
-	int16_t capt_height = get_caption_height();
-	int16_t item_height = get_item_height();
+	int item_count;
+	int item_height;
+	int visible_count;
+	int offscreen_items_count;
 
-	int16_t rel_y = (pt.y-capt_height);
-	if (rel_y < 0) return;
-	int index = top_item_index_ + rel_y / item_height;
-	if (index >= (int16_t)items_provider_->get_items_count()) return;
+	uint16_t scr_bar_width;
 
-	switch (type)
+	Rect client_rect;
+	Rect scr_bar_area;
+	Rect scr_bar_handle;
+};
+
+void StringSelectorForm::before_show(const Display &display)
+{
+	StringSelectorFormData data;
+
+	get_form_data(display, data);
+
+	top_item_index_ = selection_ - data.visible_count / 2;
+	if (top_item_index_ < 0) top_item_index_ = 0;
+	if (top_item_index_ > data.offscreen_items_count) top_item_index_ = data.offscreen_items_count;
+}
+
+void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &event_data)
+{
+	StringSelectorFormData data;
+
+	get_form_data(*event_data.display, data);
+
+	switch (event_data.type)
 	{
 	case EVENT_TOUCHSCREEN_DOWN:
-		selection_ = index;
-		paint(true, false);
+		if (!data.scr_bar_area.contains(event_data.pt))
+		{
+			int16_t rel_y = (event_data.pt.y - data.client_rect.y1);
+			if (rel_y < 0) return;
+			int index = top_item_index_ + rel_y / data.item_height;
+			if (index >= (int)items_provider_->get_items_count()) return;
+			selection_ = index;
+			paint(event_data.display, true, false);
+			scroll_drag_start_y_ = -1;
+		}
+		else
+		{
+			scroll_drag_start_y_ = event_data.pt.y;
+			scroll_drag_start_top_item_index_ = top_item_index_;
+		}
+		break;
+
+	case EVENT_TOUCHSCREEN_MOVE: {
+			if (scroll_drag_start_y_ == -1) return;
+			int move = (event_data.pt.y - scroll_drag_start_y_) / data.item_height;
+			int new_top_item_index = scroll_drag_start_top_item_index_ + move;
+			if (new_top_item_index < 0) new_top_item_index = 0;
+			else if (new_top_item_index > data.offscreen_items_count) new_top_item_index = data.offscreen_items_count;
+			if (new_top_item_index != top_item_index_)
+			{
+				top_item_index_ = new_top_item_index;
+				Application::get_instance()->refresh_active_form();
+			}
+		}
 		break;
 
 	case EVENT_TOUCHSCREEN_UP:
-		set_modal_result(MR_OK);
+		if (scroll_drag_start_y_ == -1) set_modal_result(MR_OK);
 		break;
 
 	default:
@@ -583,36 +645,64 @@ void StringSelectorForm::handle_touch_screen_event(EventType type, const Point p
 	}
 }
 
-void StringSelectorForm::paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets)
+void StringSelectorForm::paint_client_area(
+	PaintData  &paint_data,
+	const Rect &client_rect,
+	bool       force_repaint_all_widgets)
 {
-	int item_count = items_provider_->get_items_count();
 	paint_data.display.set_offset(Point(0, 0));
 
+	StringSelectorFormData data;
+	get_form_data(paint_data.display, data);
+
+	// items
 	int16_t y2 = client_rect.y1;
-	for (int i = top_item_index_; i < item_count; i++)
+	for (int i = top_item_index_; i < data.item_count; i++)
 	{
-		y2 = paint_item(i, paint_data, client_rect);
+		y2 = paint_item(i, paint_data, client_rect, data.item_count, data.item_height, data.scr_bar_width);
 		if (y2 >= client_rect.y2) break;
 	}
 
+	// area under items
 	if (y2 < client_rect.y2)
+	{
 		paint_data.display.fill_rect(
 			Rect(client_rect.x1, y2, client_rect.x2, client_rect.y2),
 			paint_data.colors->form_bg
 		);
+	}
+
+	// scroll bar
+	if (data.offscreen_items_count)
+	{
+		const Color sb_color = paint_data.colors->form_bg.light(-16);
+		paint_data.display.fill_rect(
+			Rect(data.scr_bar_area.x1, data.scr_bar_area.y1, data.scr_bar_area.x2, data.scr_bar_handle.y1),
+			sb_color
+		);
+		paint_data.display.fill_rect(
+			Rect(data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2),
+			sb_color
+		);
+		paint_button(paint_data, data.scr_bar_handle, false, false);
+	}
 }
 
-int16_t StringSelectorForm::paint_item(int item_index, PaintData &paint_data, const Rect &client_rect)
+int16_t StringSelectorForm::paint_item(
+	int        item_index,
+	PaintData  &paint_data,
+	const Rect &client_rect,
+	int        items_count,
+	uint16_t   item_height,
+	uint16_t   scr_bar_width)
 {
 	if (item_index < 0) return -1;
-	if (item_index >= (int)items_provider_->get_items_count()) return -1;
+	if (item_index >= items_count) return -1;
 
-	int item_height = get_item_height();
-	int y1 = client_rect.y1 + item_index * item_height;
+	int y1 = client_rect.y1 + (item_index - top_item_index_) * item_height;
 	int y2 = y1 + item_height;
 
-	Rect item_rect(client_rect.x1, y1, client_rect.x2, y2-1);
-
+	Rect item_rect(client_rect.x1, y1, client_rect.x2-1-scr_bar_width, y2-1);
 	bool is_selected = (item_index == selection_);
 	Color text_color = is_selected ? paint_data.colors->selection_text : paint_data.colors->form_text;
 	Color sel_color = is_selected ? paint_data.colors->selection_bg : paint_data.colors->form_bg;
@@ -624,9 +714,30 @@ int16_t StringSelectorForm::paint_item(int item_index, PaintData &paint_data, co
 	return y2;
 }
 
-int16_t StringSelectorForm::get_item_height() const
+void StringSelectorForm::get_form_data(const Display &display, StringSelectorFormData &data)
 {
-	return 3*get_font()->heightPages/2;
+	get_form_rects(&display, NULL, &data.client_rect);
+	int16_t client_height = data.client_rect.height();
+	data.item_count = items_provider_->get_items_count();
+	data.item_height = 3*get_font()->heightPages/2;
+	data.visible_count = client_height / data.item_height;
+
+	if (data.item_count < data.visible_count)
+	{
+		data.offscreen_items_count = 0;
+		data.scr_bar_width = 0;
+	}
+	else
+	{
+		data.offscreen_items_count = data.item_count - data.visible_count;
+		data.scr_bar_width = display.get_dpi() / 4;
+		int16_t x1 = data.client_rect.x2 - data.scr_bar_width;
+		int16_t x2 = data.client_rect.x2;
+		int16_t y1 = data.client_rect.y1 + top_item_index_ * client_height / data.item_count;
+		int16_t y2 = y1 + data.visible_count * client_height / data.item_count;
+		data.scr_bar_area = Rect(x1, data.client_rect.y1, x2, data.client_rect.y2);
+		data.scr_bar_handle = Rect(x1, y1, x2, y2);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -663,9 +774,12 @@ void Application::process_touch_screen_events()
 	if (active_form_ == NULL) return;
 
 	Point cur_pt = Point(-1, -1);
-
 	TouchScreen *touch_screen = get_touch_screen();
 	bool touch_screen_pressed = touch_screen->is_pressed();
+
+	FormTouchScreenEventData event;
+
+	event.display = get_display();
 
 	if (touch_screen_pressed)
 	{
@@ -675,18 +789,35 @@ void Application::process_touch_screen_events()
 
 	if (touch_screen_pressed && !flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
 	{
-		active_form_->handle_touch_screen_event(EVENT_TOUCHSCREEN_DOWN, cur_pt);
+		event.pt = cur_pt;
+		event.type = EVENT_TOUCHSCREEN_DOWN;
+		active_form_->handle_touch_screen_event(event);
 		pressed_counter_ = 0;
 	}
 
 	else if (!touch_screen_pressed && flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
-		active_form_->handle_touch_screen_event(EVENT_TOUCHSCREEN_UP, prev_pt_);
+	{
+		event.pt = prev_pt_;
+		event.type = EVENT_TOUCHSCREEN_UP;
+		active_form_->handle_touch_screen_event(event);
+	}
 
 	else if (touch_screen_pressed && flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
 	{
+		event.pt = cur_pt;
+
+		if (prev_pt_ != cur_pt)
+		{
+			event.type = EVENT_TOUCHSCREEN_MOVE;
+			active_form_->handle_touch_screen_event(event);
+		}
+
 		pressed_counter_++;
 		if ((pressed_counter_ > 50) && ((pressed_counter_ % 10) == 0))
-			active_form_->handle_touch_screen_event(EVENT_TOUCHSCREEN_REPEATED, cur_pt);
+		{
+			event.type = EVENT_TOUCHSCREEN_REPEATED;
+			active_form_->handle_touch_screen_event(event);
+		}
 	}
 
 	if (touch_screen_pressed) prev_pt_ = cur_pt;
@@ -697,14 +828,14 @@ void Application::process_touch_screen_events()
 		if (flags_.get(FLAG_PAINT_ACTIVE_FORM))
 		{
 			flags_.clear(FLAG_PAINT_ACTIVE_FORM);
-			active_form_->paint(false, true);
+			active_form_->paint(event.display, false, true);
 			flags_.clear(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM);
 		}
 
 		if (flags_.get(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM))
 		{
 			flags_.clear(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM);
-			active_form_->paint(true, false);
+			active_form_->paint(event.display, true, false);
 		}
 	}
 

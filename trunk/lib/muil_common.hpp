@@ -37,8 +37,11 @@
 
 namespace muil {
 
+// fwd.
 struct PaintData;
 class Form;
+struct FormTouchScreenEventData;
+struct StringSelectorFormData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -46,7 +49,8 @@ enum EventType
 {
 	EVENT_TOUCHSCREEN_DOWN,
 	EVENT_TOUCHSCREEN_UP,
-	EVENT_TOUCHSCREEN_REPEATED
+	EVENT_TOUCHSCREEN_REPEATED,
+	EVENT_TOUCHSCREEN_MOVE,
 };
 
 enum ModalResult
@@ -55,7 +59,6 @@ enum ModalResult
 	MR_OK,
 	MR_CANCEL,
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -320,18 +323,21 @@ public:
 		modal_result_ = modal_result;
 	}
 
-	virtual void handle_touch_screen_event(EventType type, const Point pt) = 0;
+	virtual void handle_touch_screen_event(FormTouchScreenEventData &event_data) = 0;
 
 	virtual void widget_event(EventType type, const Widget *widget) {}
 
-	void paint(bool widgets_only, bool force_repaint_all_widgets);
+	void paint(Display *display, bool widgets_only, bool force_repaint_all_widgets);
 
 protected:
 	virtual void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) = 0;
 
-	virtual void touch_screen_event(EventType type, const Point pt) {}
+	virtual void touch_screen_event(FormTouchScreenEventData &event_data) {}
+	virtual void before_show(const Display &display) {}
 
 	int16_t get_caption_height() const;
+
+	void get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const;
 
 	const FormColors *colors_;
 
@@ -350,7 +356,7 @@ public:
 		Form(caption, font),
 		last_pressed_widget_(NULL) {}
 
-	void handle_touch_screen_event(EventType type, const Point pt);
+	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
 
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
@@ -369,21 +375,27 @@ public:
 		Form(caption, font),
 		items_provider_(items_provider),
 		selection_(selection),
-		top_item_index_(0) {}
+		top_item_index_(0),
+		scroll_drag_start_y_(-1) {}
 
-	void handle_touch_screen_event(EventType type, const Point pt);
+	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
 
 	int get_selection() const { return selection_; }
 
 protected:
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
-	int16_t paint_item(int item_index, PaintData &paint_data, const Rect &client_rect);
-	int16_t get_item_height() const;
+	void before_show(const Display &display);
+
+	int16_t paint_item(int item_index, PaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
 
 private:
 	IStringItemsProvider *items_provider_;
 	int selection_;
 	int top_item_index_;
+	int16_t scroll_drag_start_y_;
+	int16_t scroll_drag_start_top_item_index_;
+
+	void get_form_data(const Display &display, StringSelectorFormData &data);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
