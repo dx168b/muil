@@ -50,7 +50,7 @@ private:
 	};
 
 	void wait_for_press();
-	static void paint_pess_point(Display &display, Point pt, const Color &color);
+	static void paint_cross(Display &display, Point pt, const Color &color);
 	static int16_t read_coord(uint8_t cmd);
 	static void get_filtered_coords(int16_t &x, int16_t &y);
 	static int16_t get_filtered_value(int16_t *values);
@@ -91,7 +91,6 @@ Point ADS7843TouchScreen<SPI, PressedPin>::get_pos()
 	int16_t filtered_x, filtered_y;
 	get_filtered_coords(filtered_x, filtered_y);
 	if ((filtered_x == -1) && (filtered_y == -1)) return Point(-1, -1);
-	if (!is_pressed()) return Point(-1, -1);
 
 	Point result = Point(
 		int16_t(((matrix_.An * filtered_x) + (matrix_.Bn * filtered_y) + matrix_.Cn) / matrix_.Divider),
@@ -128,16 +127,16 @@ void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const Font
 		for (;;)
 		{
 			display.paint_text(font, 1, 1, text, Color::black());
-			paint_pess_point(display, display_points[i], Color::blue());
+			paint_cross(display, display_points[i], Color::blue());
 
 			while (is_pressed());
 			wait_for_press();
 			delay_ms(50);
-			paint_pess_point(display, display_points[i], Color::red());
+			paint_cross(display, display_points[i], Color::red());
 			get_filtered_coords(touchscreen_points[i].x, touchscreen_points[i].y);
 			delay_ms(500);
 			while (is_pressed()) {}
-			paint_pess_point(display, display_points[i], bg_color);
+			paint_cross(display, display_points[i], bg_color);
 
 			if ((touchscreen_points[i].x != -1) && (touchscreen_points[i].y != -1)) break;
 		}
@@ -147,7 +146,7 @@ void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const Font
 }
 
 template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::paint_pess_point(Display &display, Point pt, const Color &color)
+void ADS7843TouchScreen<SPI, PressedPin>::paint_cross(Display &display, Point pt, const Color &color)
 {
 	int16_t line_size = display.get_dpi()/10;
 	display.fill_rect(Rect(pt.x-1, pt.y-line_size, pt.x+1, pt.y+line_size), color);
