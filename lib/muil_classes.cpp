@@ -132,10 +132,14 @@ void Display::paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar
 		}
 		const FontCharInfo* char_info = find_char_info(font, text[i]);
 		if (char_info == NULL) char_info = find_char_info(font, '?');
-		paint_character(x, y, &font->data[char_info->offset], char_info->widthBits,
-				font->heightPages, color);
-		x += char_info->widthBits;
-		x += font->spacePixels;
+		paint_character(
+			x, y,
+			&font->data[char_info->offset],
+			char_info->widthBits,
+			font->heightPages,
+			color
+		);
+		x += char_info->widthBits + font->spacePixels;
 	}
 }
 
