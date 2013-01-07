@@ -99,16 +99,26 @@ void Display::draw_rect(const Rect &rect, int16_t width, const Color &color)
 	fill_rect(Rect(rect.x1+width, rect.y2-width, rect.x2-width, rect.y2), color);
 }
 
+static Color get_intermediate_color(const Color &color1, const Color &color2, int16_t value, int16_t max)
+{
+	int16_t r = value*(color2.r-color1.r)/max + color1.r;
+	int16_t g = value*(color2.g-color1.g)/max + color1.g;
+	int16_t b = value*(color2.b-color1.b)/max + color1.b;
+	return Color(r, g, b);
+}
+
 void Display::draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2)
 {
 	const uint16_t height = rect.y2 - rect.y1;
 	for (int16_t y = rect.y1, i = 0; y <= rect.y2; y++, i++)
-	{
-		int16_t r = i*(color2.r-color1.r)/height + color1.r;
-		int16_t g = i*(color2.g-color1.g)/height + color1.g;
-		int16_t b = i*(color2.b-color1.b)/height + color1.b;
-		fill_rect(Rect(rect.x1, y, rect.x2, y), Color(r, g, b));
-	}
+		fill_rect(Rect(rect.x1, y, rect.x2, y), get_intermediate_color(color1, color2, i, height));
+}
+
+void Display::draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2)
+{
+	const uint16_t width = rect.x2 - rect.x1;
+	for (int x = rect.x1, i = 0; x <= rect.x2; x++, i++)
+		fill_rect(Rect(x, rect.y1, x, rect.y2), get_intermediate_color(color1, color2, i, width));
 }
 
 void Display::paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar_t *text, const Color &color)
