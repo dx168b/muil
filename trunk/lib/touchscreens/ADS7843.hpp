@@ -97,13 +97,6 @@ Point ADS7843TouchScreen<SPI, PressedPin>::get_pos()
 		int16_t(((matrix_.Dn * filtered_x) + (matrix_.En * filtered_y) + matrix_.Fn) / matrix_.Divider)
 	);
 
-	static const int16_t max_dist = 16;
-
-	if ((last_pos_.x != -1) && ((abs(result.x-last_pos_.x) > max_dist) || (abs(result.y-last_pos_.y) > max_dist)))
-		result = Point(-1, -1);
-	else
-		last_pos_ = result;
-
 	return result;
 }
 
