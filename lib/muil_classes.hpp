@@ -137,6 +137,7 @@ public:
 	void set_offset(const Point offset) { offset_ = offset; }
 	void draw_rect(const Rect &rect, int16_t width, const Color &color);
 	void draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
+	void draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
 	void paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar_t *text, const Color &color);
 	static Size get_text_size(const FontInfo *font, const wchar_t *text);
 

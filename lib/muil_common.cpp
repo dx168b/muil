@@ -111,20 +111,29 @@ static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 	return true;
 }
 
-static void paint_button(PaintData &paint_data, const Rect &rect, bool pressed, bool shadow)
+static void paint_button(PaintData &paint_data, const Rect &rect, bool pressed, bool shadow, bool vert_gradient = true)
 {
-	int16_t my = rect.y1 + rect.height() / 4;
-	Rect intern_rect1 = Rect(rect.x1+1, rect.y1+1, rect.x2-1, my);
-	Rect intern_rect2 = Rect(rect.x1+1, my+1, rect.x2-1, rect.y2-1);
-
 	Color form_bg = paint_data.colors->form_bg;
 	Color bg_color = paint_data.colors->btn_bg;
-
 	Color bg_color1 = bg_color.light(pressed ? -32 : 0);
 	Color bg_color2 = bg_color.light(pressed ? 32 : 64);
 
-	paint_data.display.draw_vertical_gradient(intern_rect1, bg_color1, bg_color2);
-	paint_data.display.draw_vertical_gradient(intern_rect2, bg_color2, bg_color1);
+	if (vert_gradient)
+	{
+		int16_t my = rect.y1 + rect.height() / 4;
+		Rect intern_rect1 = Rect(rect.x1+1, rect.y1+1, rect.x2-1, my);
+		Rect intern_rect2 = Rect(rect.x1+1, my+1, rect.x2-1, rect.y2-1);
+		paint_data.display.draw_vertical_gradient(intern_rect1, bg_color1, bg_color2);
+		paint_data.display.draw_vertical_gradient(intern_rect2, bg_color2, bg_color1);
+	}
+	else
+	{
+		int16_t mx = rect.x1 + rect.width() / 4;
+		Rect intern_rect1 = Rect(rect.x1+1, rect.y1+1, mx, rect.y2-1);
+		Rect intern_rect2 = Rect(mx+1, rect.y1+1, rect.x2, rect.y2-1);
+		paint_data.display.draw_horizontal_gradient(intern_rect1, bg_color1, bg_color2);
+		paint_data.display.draw_horizontal_gradient(intern_rect2, bg_color2, bg_color1);
+	}
 
 	if (shadow)
 	{
@@ -619,6 +628,7 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 		{
 			scroll_drag_start_y_ = event_data.pt.y;
 			scroll_drag_start_top_item_index_ = top_item_index_;
+			Application::get_instance()->refresh_active_form();
 		}
 		break;
 
@@ -638,6 +648,11 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 
 	case EVENT_TOUCHSCREEN_UP:
 		if (scroll_drag_start_y_ == -1) set_modal_result(MR_OK);
+		else
+		{
+			scroll_drag_start_y_ = -1;
+			Application::get_instance()->refresh_active_form();
+		}
 		break;
 
 	default:
@@ -684,7 +699,7 @@ void StringSelectorForm::paint_client_area(
 			Rect(data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2),
 			sb_color
 		);
-		paint_button(paint_data, data.scr_bar_handle, false, false);
+		paint_button(paint_data, data.scr_bar_handle, scroll_drag_start_y_ != -1, false, false);
 	}
 }
 
