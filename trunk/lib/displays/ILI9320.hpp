@@ -123,6 +123,8 @@ private:
 
 	static void set_direction(Direction dir);
 
+	static Direction cur_dir_;
+
 	const static uint8_t SPI_START = 0x70;              /* Start byte for SPI transfer        */
 	const static uint8_t SPI_RD    = 0x01;              /* WR bit 1 within start              */
 	const static uint8_t SPI_WR    = 0x00;              /* WR bit 0 within start              */
@@ -297,7 +299,6 @@ void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &col
 			}
 			SPI::cs_high();
 		}
-
 	}
 }
 
@@ -333,6 +334,7 @@ void ILI9320Display<SPI, ResetPin>::paint_character(int16_t x0, int16_t y0, cons
 template <typename SPI, typename ResetPin>
 void ILI9320Display<SPI, ResetPin>::set_direction(Direction dir)
 {
+	if (dir == cur_dir_) return;
 	uint16_t am = 0;
 	uint16_t id = 0;
 	switch (dir)
@@ -351,8 +353,11 @@ void ILI9320Display<SPI, ResetPin>::set_direction(Direction dir)
 			break;
 	}
 	write_reg(0x03, 0x1000 | (am << 3) | (id << 4));
+	cur_dir_ = dir;
 }
 
+template <typename SPI, typename ResetPin>
+Direction ILI9320Display<SPI, ResetPin>::cur_dir_ = DIR_UNDEFINED;
 
 } // end "namespace muil"
 

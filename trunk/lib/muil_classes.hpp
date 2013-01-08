@@ -36,6 +36,7 @@ typedef void (*DelayFun)(uint16_t millisoconds);
 
 enum Direction
 {
+	DIR_UNDEFINED,
 	DIR_UP,
 	DIR_DOWN,
 	DIR_LEFT,
