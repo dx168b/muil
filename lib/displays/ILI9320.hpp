@@ -121,6 +121,8 @@ private:
 		return (r16 << 11) | (g16 << 5) | b16;
 	}
 
+	static void set_direction(Direction dir);
+
 	const static uint8_t SPI_START = 0x70;              /* Start byte for SPI transfer        */
 	const static uint8_t SPI_RD    = 0x01;              /* WR bit 1 within start              */
 	const static uint8_t SPI_WR    = 0x00;              /* WR bit 0 within start              */
@@ -151,7 +153,6 @@ void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds)
 		{ 0x01, 0x0100 }, /* Driver Output Contral */
 
 		{ 0x02, 0x0700 }, /* LCD Driver Waveform Contral */
-		{ 0x03, 0x1030 }, /* Set the scan mode */
 		{ 0x04, 0x0000 }, /* Scalling Contral */
 		{ 0x08, 0x0202 }, /* Display Contral 2 */
 		{ 0x09, 0x0000 }, /* Display Contral 3 */
@@ -213,6 +214,8 @@ void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds)
 		else write_reg(val_ptr->reg, val_ptr->value);
 		val_ptr++;
 	}
+
+	set_direction(DIR_RIGHT);
 }
 
 template <typename SPI, typename ResetPin>
@@ -255,23 +258,46 @@ void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &col
 	if (x2 >= Width) x2 = Width-1;
 	if (y2 >= Height) y2 = Height-1;
 
-	const uint16_t width = x2-x1+1;
+	const uint16_t width = x2 - x1 + 1;
+	const uint16_t height = y2 - y1 + 1;
 	const uint16_t color_v = rgb_to_value(color);
 	const uint16_t bt1 = (color_v >> 8) & 0xFF;
 	const uint16_t bt2 = color_v & 0xFF;
 
-	for (int16_t y = y1; y <= y2; y++)
+	if (width > height)
 	{
-		set_cursor(x1, y);
-		write_index(0x0022);
-		SPI::cs_low();
-		write_data_start();
-		for (uint16_t w = 0; w < width; w++)
+		set_direction(DIR_RIGHT);
+		for (int16_t y = y1; y <= y2; y++)
 		{
-			SPI::write(bt1);
-			SPI::write(bt2);
+			set_cursor(x1, y);
+			write_index(0x0022);
+			SPI::cs_low();
+			write_data_start();
+			for (uint16_t w = 0; w < width; w++)
+			{
+				SPI::write(bt1);
+				SPI::write(bt2);
+			}
+			SPI::cs_high();
 		}
-		SPI::cs_high();
+	}
+	else
+	{
+		set_direction(DIR_DOWN);
+		for (int16_t x = x1; x <= x2; x++)
+		{
+			set_cursor(x, y1);
+			write_index(0x0022);
+			SPI::cs_low();
+			write_data_start();
+			for (uint16_t h = 0; h < height; h++)
+			{
+				SPI::write(bt1);
+				SPI::write(bt2);
+			}
+			SPI::cs_high();
+		}
+
 	}
 }
 
@@ -283,6 +309,7 @@ void ILI9320Display<SPI, ResetPin>::paint_character(int16_t x0, int16_t y0, cons
 	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
 	int16_t y = y0;
+	set_direction(DIR_RIGHT);
 	for (; height != 0; height--, y++)
 	{
 		int32_t x = x0;
@@ -302,6 +329,30 @@ void ILI9320Display<SPI, ResetPin>::paint_character(int16_t x0, int16_t y0, cons
 		}
 	}
 }
+
+template <typename SPI, typename ResetPin>
+void ILI9320Display<SPI, ResetPin>::set_direction(Direction dir)
+{
+	uint16_t am = 0;
+	uint16_t id = 0;
+	switch (dir)
+	{
+		case DIR_RIGHT:
+			id = 0x03;
+			am = 0;
+			break;
+
+		case DIR_DOWN:
+			id = 0x03;
+			am = 1;
+			break;
+
+		default:
+			break;
+	}
+	write_reg(0x03, 0x1000 | (am << 3) | (id << 4));
+}
+
 
 } // end "namespace muil"
 

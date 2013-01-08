@@ -34,6 +34,14 @@ namespace muil {
 
 typedef void (*DelayFun)(uint16_t millisoconds);
 
+enum Direction
+{
+	DIR_UP,
+	DIR_DOWN,
+	DIR_LEFT,
+	DIR_RIGHT,
+};
+
 struct Color
 {
 	uint8_t r;
