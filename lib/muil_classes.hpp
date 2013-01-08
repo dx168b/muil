@@ -49,7 +49,7 @@ struct Color
 	static Color red() { return Color(255, 0, 0); }
 
 	Color light(int value) const;
-	static Color between(const Color &color1, const Color &color2, unsigned coeff);
+	static Color between(const Color &color1, const Color &color2, int16_t value, int16_t max);
 };
 
 struct Size
