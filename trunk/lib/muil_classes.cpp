@@ -135,6 +135,37 @@ void Display::paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar
 	}
 }
 
+void Display::paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color)
+{
+	const Size display_size = get_size();
+	if (rect.intersects(Rect(Point(0, 0), display_size))) return;
+
+	const Size text_size = get_text_size(font, text);
+
+	int16_t x;
+	int16_t y = (rect.y1 + rect.y2 - text_size.height) / 2;
+	int16_t left_right_layer = text_size.height/4;
+	switch (align)
+	{
+	case HA_LEFT:
+		x = rect.x1 + left_right_layer;
+		break;
+
+	case HA_CENTER:
+		x = (rect.x1 + rect.x2 - text_size.width) / 2;
+		break;
+
+	case HA_RIGHT:
+		x = rect.x2 - text_size.width - left_right_layer;
+		break;
+
+	default:
+		return;
+	}
+
+	paint_text(font, x, y, text, color);
+}
+
 Size Display::get_text_size(const FontInfo *font, const wchar_t *text)
 {
 	int width = 0;
@@ -148,7 +179,7 @@ Size Display::get_text_size(const FontInfo *font, const wchar_t *text)
 		const FontCharInfo* char_info = find_char_info(font, text[i]);
 		if (char_info == NULL) char_info = find_char_info(font, '?');
 		width += char_info->widthBits;
-		width += font->spacePixels;
+		if (i != 0) width += font->spacePixels;
 	}
 	return Size(width, font->heightPages);
 }
