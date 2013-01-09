@@ -75,39 +75,39 @@ static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 
 static void paint_button(PaintData &paint_data, const Rect &rect, bool pressed, bool shadow, bool vert_gradient = true)
 {
-	Color form_bg = paint_data.colors->form_bg;
-	Color bg_color = paint_data.colors->btn_bg;
-	Color bg_color1 = bg_color.light(pressed ? -32 : 0);
-	Color bg_color2 = bg_color.light(pressed ? 32 : 64);
+	const Color bg_color = paint_data.colors->btn_bg;
+	const Color bg_color1 = bg_color.light(pressed ? -32 : 0);
+	const Color bg_color2 = bg_color.light(pressed ? 32 : 64);
 
 	if (vert_gradient)
 	{
 		int16_t my = rect.y1 + rect.height() / 4;
-		Rect intern_rect1 = Rect(rect.x1+1, rect.y1+1, rect.x2-1, my);
-		Rect intern_rect2 = Rect(rect.x1+1, my+1, rect.x2-1, rect.y2-1);
+		const Rect intern_rect1(rect.x1+1, rect.y1+1, rect.x2-1, my);
+		const Rect intern_rect2(rect.x1+1, my+1, rect.x2-1, rect.y2-1);
 		paint_data.display.draw_vertical_gradient(intern_rect1, bg_color1, bg_color2);
 		paint_data.display.draw_vertical_gradient(intern_rect2, bg_color2, bg_color1);
 	}
 	else
 	{
 		int16_t mx = rect.x1 + rect.width() / 4;
-		Rect intern_rect1 = Rect(rect.x1+1, rect.y1+1, mx, rect.y2-1);
-		Rect intern_rect2 = Rect(mx+1, rect.y1+1, rect.x2, rect.y2-1);
+		const Rect intern_rect1(rect.x1+1, rect.y1+1, mx, rect.y2-1);
+		const Rect intern_rect2(mx+1, rect.y1+1, rect.x2, rect.y2-1);
 		paint_data.display.draw_horizontal_gradient(intern_rect1, bg_color1, bg_color2);
 		paint_data.display.draw_horizontal_gradient(intern_rect2, bg_color2, bg_color1);
 	}
 
 	if (shadow)
 	{
-		Color sh_clr1 = pressed ? form_bg : form_bg.light(-10);
-		Color sh_clr2 = pressed ? form_bg : form_bg.light(-40);
+		const Color form_bg = paint_data.colors->form_bg;
+		const Color sh_clr1 = pressed ? form_bg : form_bg.light(-10);
+		const Color sh_clr2 = pressed ? form_bg : form_bg.light(-40);
 		paint_data.display.draw_rect(rect.inflated(2), 2, sh_clr1);
 		paint_data.display.draw_rect(rect.inflated(1), 2, sh_clr2);
 	}
 	paint_data.display.draw_rect(rect, 2, paint_data.colors->ctrl_border);
 }
 
-void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int16_t x2, int16_t y1, int16_t y2, bool up)
+static void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int16_t x2, int16_t y1, int16_t y2, bool up)
 {
 	x1 += layer;
 	x2 -= layer;
@@ -561,6 +561,13 @@ struct StringSelectorFormData
 	Rect client_rect;
 	Rect scr_bar_area;
 	Rect scr_bar_handle;
+
+	StringSelectorFormData() :
+		item_count(0),
+		item_height(0),
+		visible_count(0),
+		offscreen_items_count(0),
+		scr_bar_width(0) {}
 };
 
 void StringSelectorForm::before_show(const Display &display)
