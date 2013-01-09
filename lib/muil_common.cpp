@@ -45,44 +45,6 @@ struct PaintData
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum HorizAlign
-{
-	HA_LEFT,
-	HA_CENTER,
-	HA_RIGHT,
-};
-
-static void paint_text_in_rect(PaintData &paint_data, const Rect &rect, HorizAlign align, const wchar_t *text, const Color &color)
-{
-	const Size display_size = paint_data.display.get_size();
-	if (rect.intersects(Rect(Point(0, 0), display_size))) return;
-
-	const Size text_size = paint_data.display.get_text_size(paint_data.font, text);
-
-	int16_t x;
-	int16_t y = (rect.y1 + rect.y2 - text_size.height) / 2;
-	int16_t left_right_layer = text_size.height/4;
-	switch (align)
-	{
-	case HA_LEFT:
-		x = rect.x1 + left_right_layer;
-		break;
-
-	case HA_CENTER:
-		x = (rect.x1 + rect.x2 - text_size.width) / 2;
-		break;
-
-	case HA_RIGHT:
-		x = rect.x2 - text_size.width - left_right_layer;
-		break;
-
-	default:
-		return;
-	}
-
-	paint_data.display.paint_text(paint_data.font, x, y, text, color);
-}
-
 static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 {
 	bool is_negative = value < 0;
@@ -167,15 +129,17 @@ void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int16_t x2
 class WidgetsPaintVisitor : public IWidgetVisitor
 {
 public:
-	WidgetsPaintVisitor(PaintData &paint_data, bool force_repaint_all_widgets) :
+	WidgetsPaintVisitor(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) :
 		paint_data_(paint_data),
+		client_rect_(client_rect),
 		force_repaint_all_widgets_(force_repaint_all_widgets) {}
 
 	void visit(Widget &widget)
 	{
 		if (widget.flags_.get(Widget::FLAG_INVALID) || force_repaint_all_widgets_)
 		{
-			paint_data_.display.set_offset(widget.get_pos());
+			Point widget_pos = widget.get_pos().moved(client_rect_.x1, client_rect_.y1);
+			paint_data_.display.set_offset(widget_pos);
 			widget.paint(paint_data_);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
@@ -183,6 +147,7 @@ public:
 
 private:
 	PaintData &paint_data_;
+	const Rect &client_rect_;
 	const bool force_repaint_all_widgets_;
 };
 
@@ -191,15 +156,16 @@ private:
 class TouchScreenPressVisitor : public IWidgetVisitor
 {
 public:
-	TouchScreenPressVisitor(Form &form, EventType type, const Point pt, Widget** last_pressed_widget) :
+	TouchScreenPressVisitor(Form &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget) :
 		form_(form),
+		client_rect_(client_rect),
 		type_(type),
 		pt_(pt),
 		last_pressed_widget_(last_pressed_widget) {}
 
 	void visit(Widget &widget)
 	{
-		Rect rect(widget.get_pos(), widget.get_size());
+		Rect rect(widget.get_pos().moved(client_rect_.x1, client_rect_.y1), widget.get_size());
 		if (rect.contains(pt_))
 		{
 			const Point widget_pt = Point(pt_.x-rect.x1, pt_.y-rect.y1);
@@ -211,6 +177,7 @@ public:
 
 private:
 	Form &form_;
+	const Rect &client_rect_;
 	const EventType type_;
 	const Point pt_;
 	Widget **last_pressed_widget_;
@@ -237,7 +204,7 @@ void Indicator::paint(PaintData &paint_data)
 {
 	Rect rect(0, 0, size_.width, size_.height);
 	paint_data.display.fill_rect(rect, Color::white());
-	paint_text_in_rect(paint_data, rect, HA_CENTER, get_text(), Color::black());
+	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +252,7 @@ void Button::paint(PaintData &paint_data)
 	Rect rect(0, 0, size_.width, size_.height);
 
 	paint_button(paint_data, rect, flags_.get(FLAG_PRESSED), true);
-	paint_text_in_rect(paint_data, rect, HA_CENTER, text_, Color::black());
+	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +264,7 @@ void CheckBox::paint(PaintData &paint_data)
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(size_.height+size_.height/6, 0, size_.width, size_.height);
-	paint_text_in_rect(paint_data, tect_rect, HA_LEFT, text_, Color::black());
+	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, Color::black());
 }
 
 void CheckBox::pressed(Form *form)
@@ -355,7 +322,7 @@ void UpDownWidget::paint(PaintData &paint_data)
 
 	wchar_t text_buf[10] = {0};
 	print_number(text_buf, 10, value_, dec_pt_);
-	paint_text_in_rect(paint_data, value_rect, HA_CENTER, text_buf, Color::black());
+	paint_data.display.paint_text_in_rect(value_rect, HA_CENTER, text_buf, paint_data.font, Color::black());
 }
 
 void UpDownWidget::get_buttons_rects(Display &display, Rect &up_btn_rect, Rect &down_btn_rect)
@@ -415,11 +382,11 @@ void Choice::paint(PaintData &paint_data)
 	int selection = get_selection();
 	if (selection != -1)
 	{
-		paint_text_in_rect(
-			paint_data,
+		paint_data.display.paint_text_in_rect(
 			data_rect,
 			HA_LEFT,
 			get_item(selection),
+			paint_data.font,
 			paint_data.colors->form_text
 		);
 	}
@@ -499,7 +466,7 @@ void Form::paint(Display *display, bool widgets_only, bool force_repaint_all_wid
 	{
 		display->set_offset(Point(0, 0));
 		display->fill_rect(caption_rect, colors_->caption);
-		paint_text_in_rect(paint_data, caption_rect, HA_CENTER, caption_, colors_->caption_text);
+		display->paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -546,11 +513,13 @@ ModalResult Form::show_modal()
 
 void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data)
 {
+	Rect client_rect;
+	get_form_rects(event_data.display, NULL, &client_rect);
 	if (event_data.type == EVENT_TOUCHSCREEN_UP)
 	{
 		if (last_pressed_widget_)
 		{
-			const Point widget_pos = last_pressed_widget_->get_pos();
+			const Point widget_pos = last_pressed_widget_->get_pos().moved(client_rect.x1, client_rect.y1);
 			const Point up_rel_pos = event_data.pt.moved(-widget_pos.x, -widget_pos.y);
 			last_pressed_widget_->touch_screen_event(EVENT_TOUCHSCREEN_UP, up_rel_pos, this);
 			const Rect widget_rect(Point(0, 0), last_pressed_widget_->get_size());
@@ -560,7 +529,7 @@ void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data
 	}
 	else
 	{
-		TouchScreenPressVisitor touch_screen_visitor(*this, event_data.type, event_data.pt, &last_pressed_widget_);
+		TouchScreenPressVisitor touch_screen_visitor(*this, client_rect, event_data.type, event_data.pt, &last_pressed_widget_);
 		visit_all_widgets(touch_screen_visitor);
 	}
 
@@ -574,7 +543,7 @@ void WidgetsForm::paint_client_area(PaintData &paint_data, const Rect &client_re
 		paint_data.display.set_offset(Point(0, 0));
 		paint_data.display.fill_rect(client_rect, colors_->form_bg);
 	}
-	WidgetsPaintVisitor paint_visitor(paint_data, force_repaint_all_widgets);
+	WidgetsPaintVisitor paint_visitor(paint_data, client_rect, force_repaint_all_widgets);
 	visit_all_widgets(paint_visitor);
 }
 
@@ -724,7 +693,7 @@ int16_t StringSelectorForm::paint_item(
 
 	if (!is_selected) paint_data.display.fill_rect(item_rect, sel_color);
 	else paint_data.display.draw_vertical_gradient(item_rect, sel_color.light(64), sel_color);
-	paint_text_in_rect(paint_data, item_rect, HA_LEFT, items_provider_->get_item(item_index), text_color);
+	paint_data.display.paint_text_in_rect(item_rect, HA_LEFT, items_provider_->get_item(item_index), get_font(), text_color);
 
 	return y2;
 }
