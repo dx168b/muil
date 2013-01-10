@@ -191,6 +191,62 @@ const FontCharInfo* Display::find_char_info(const FontInfo *font, wchar_t chr)
 	return NULL;
 }
 
+void Display::fill_tirangle(Point pt1, Point pt2, Point pt3, const Color &color)
+{
+	if (pt1.x > pt2.x) swap(pt1, pt2);
+	if (pt2.x > pt3.x) swap(pt2, pt3);
+	if (pt1.x > pt3.x) swap(pt1, pt3);
+
+	uint16_t dx1 = pt2.x - pt1.x;
+	int16_t dy1 = pt2.y - pt1.y;
+	uint16_t dy1_abs = dx1 ? (abs(dy1) % dx1) : 0;
+	int16_t step1 = pt2.y > pt1.y ? 1 : -1;
+	int16_t int1 = dx1 ? (dy1 / dx1) : 0;
+	int16_t cnt_y1 = dx1 / 2;
+	int16_t y1 = pt1.y;
+
+	uint16_t dx2 = pt3.x - pt1.x;
+	int16_t dy2 = pt3.y - pt1.y;
+	uint16_t dy2_abs = dx2 ? (abs(dy2) % dx2) : 0;
+	int16_t step2 = pt3.y > pt1.y ? 1 : -1;
+	int16_t int2 = dx2 ? (dy2 / dx2) : 0;
+	int16_t cnt_y2 = dx2 / 2;
+	int16_t y2 = pt1.y;
+
+	for (int16_t x = pt1.x; x <= pt3.x; x++)
+	{
+		if (x == pt2.x)
+		{
+			dx1 = pt3.x - pt2.x;
+			if (dx1 == 0) break;
+			dy1 = pt3.y - pt2.y;
+			dy1_abs = abs(dy1) % dx1;
+			step1 = pt3.y > pt2.y ? 1 : -1;
+			int1 = dy1 / dx1;
+			cnt_y1 = dx1 / 2;
+			y1 = pt2.y;
+		}
+
+		fill_rect(Rect(x, min(y1, y2), x, max(y1, y2)), color);
+
+		cnt_y1 -= dy1_abs;
+		if (cnt_y1 < 0)
+		{
+			cnt_y1 += dx1;
+			y1 += step1;
+		}
+		y1 += int1;
+
+		cnt_y2 -= dy2_abs;
+		if (cnt_y2 < 0)
+		{
+			cnt_y2 += dx2;
+			y2 += step2;
+		}
+		y2 += int2;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // end "namespace muil"

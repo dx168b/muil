@@ -116,12 +116,8 @@ static void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int
 	int16_t mx = (x1 + x2) / 2;
 	int16_t top = up ? y1 : y2;
 	int16_t bottom = up ? y2 : y1;
-	for (int16_t y = y1; y <= y2; y++)
-	{
-		int16_t left = linear_interpol(y, top, bottom, mx, x1);
-		int16_t right = linear_interpol(y, top, bottom, mx, x2);
-		paint_data.display.fill_rect(Rect(left, y, right, y), paint_data.colors->ctrl_sign);
-	}
+
+	paint_data.display.fill_tirangle(Point(x1, bottom), Point(mx, top), Point(x2, bottom), paint_data.colors->ctrl_sign);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,21 +281,8 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 	int16_t x4 = rect.x2 - layer;
 	int16_t y4 = rect.y1 + layer;
 
-	Color check_color = paint_data.colors->ctrl_sign;
-
-	for (int16_t x = x1; x <= x2; x++)
-	{
-		int16_t yt = linear_interpol(x, x1, x2, y1, y2);
-		int16_t yb = linear_interpol(x, x1, x2, y1, y3);
-		paint_data.display.fill_rect(Rect(x, yt, x, yb), check_color);
-	}
-
-	for (int16_t x = x2; x <= x4; x++)
-	{
-		int16_t yt = linear_interpol(x, x2, x4, y2, y4);
-		int16_t yb = linear_interpol(x, x2, x4, y3, y4);
-		paint_data.display.fill_rect(Rect(x, yt, x, yb), check_color);
-	}
+	paint_data.display.fill_tirangle(Point(x1, y1), Point(x2, y2), Point(x2, y3), paint_data.colors->ctrl_sign);
+	paint_data.display.fill_tirangle(Point(x2, y2), Point(x2, y3), Point(x4, y4), paint_data.colors->ctrl_sign);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
