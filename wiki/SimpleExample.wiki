@@ -98,7 +98,7 @@ class MyApp : public Application
 	typedef Pin<'B', 14> TS_MISOPin;
 	typedef Pin<'B', 15> TS_MOSIPin;
 	typedef Pin<'C', 6> TS_IRQPin;
-	typedef SoftwareSPI<3, TS_MOSIPin, TS_MISOPin, TS_SCKPin, TS_CSPin> TS_SPI; // software SIP used
+	typedef SoftwareSPI<3, TS_MOSIPin, TS_MISOPin, TS_SCKPin, TS_CSPin> TS_SPI; // software SPI for touch screen
 	typedef ADS7843TouchScreen<TS_SPI, TS_IRQPin> TouchScreenDriver;
 
 public:
