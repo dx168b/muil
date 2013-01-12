@@ -191,7 +191,7 @@ const FontCharInfo* Display::find_char_info(const FontInfo *font, wchar_t chr)
 	return NULL;
 }
 
-void Display::fill_tirangle(Point pt1, Point pt2, Point pt3, const Color &color)
+void Display::fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
 {
 	if (pt1.x > pt2.x) swap(pt1, pt2);
 	if (pt2.x > pt3.x) swap(pt2, pt3);

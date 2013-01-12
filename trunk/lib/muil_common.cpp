@@ -117,7 +117,7 @@ static void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int
 	int16_t top = up ? y1 : y2;
 	int16_t bottom = up ? y2 : y1;
 
-	paint_data.display.fill_tirangle(Point(x1, bottom), Point(mx, top), Point(x2, bottom), paint_data.colors->ctrl_sign);
+	paint_data.display.fill_triangle(Point(x1, bottom), Point(mx, top), Point(x2, bottom), paint_data.colors->ctrl_sign);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,8 +281,8 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 	int16_t x4 = rect.x2 - layer;
 	int16_t y4 = rect.y1 + layer;
 
-	paint_data.display.fill_tirangle(Point(x1, y1), Point(x2, y2), Point(x2, y3), paint_data.colors->ctrl_sign);
-	paint_data.display.fill_tirangle(Point(x2, y2), Point(x2, y3), Point(x4, y4), paint_data.colors->ctrl_sign);
+	paint_data.display.fill_triangle(Point(x1, y1), Point(x2, y2), Point(x2, y3), paint_data.colors->ctrl_sign);
+	paint_data.display.fill_triangle(Point(x2, y2), Point(x2, y3), Point(x4, y4), paint_data.colors->ctrl_sign);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
