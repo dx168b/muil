@@ -325,8 +325,6 @@ public:
 
 	virtual void handle_touch_screen_event(FormTouchScreenEventData &event_data) = 0;
 
-	virtual void widget_event(EventType type, const Widget *widget) {}
-
 	void paint(Display *display, bool widgets_only, bool force_repaint_all_widgets);
 
 protected:
@@ -360,10 +358,14 @@ public:
 
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
+	virtual void widget_event(EventType type, const Widget *widget) {}
+
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 
 private:
 	Widget *last_pressed_widget_;
+
+	friend class TouchScreenPressVisitor; // for calling widget_event function
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

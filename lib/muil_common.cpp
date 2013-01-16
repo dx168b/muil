@@ -152,7 +152,7 @@ private:
 class TouchScreenPressVisitor : public IWidgetVisitor
 {
 public:
-	TouchScreenPressVisitor(Form &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget) :
+	TouchScreenPressVisitor(WidgetsForm &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget) :
 		form_(form),
 		client_rect_(client_rect),
 		type_(type),
@@ -172,7 +172,7 @@ public:
 	}
 
 private:
-	Form &form_;
+	WidgetsForm &form_;
 	const Rect &client_rect_;
 	const EventType type_;
 	const Point pt_;
