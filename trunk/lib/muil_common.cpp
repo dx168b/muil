@@ -581,24 +581,23 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 			if (index >= (int)items_provider_->get_items_count()) return;
 			selection_ = index;
 			paint(event_data.display, true, false);
-			scroll_drag_start_y_ = -1;
 		}
-		else
-		{
-			scroll_drag_start_y_ = event_data.pt.y;
-			scroll_drag_start_top_item_index_ = top_item_index_;
-			Application::get_instance()->refresh_active_form();
-		}
+		else Application::get_instance()->refresh_active_form();
+
+		scroll_drag_start_y_ = event_data.pt.y;
+		scroll_drag_start_top_item_index_ = top_item_index_;
+
+		flags_.clear(FLAG_WAS_SCROLLED);
 		break;
 
 	case EVENT_TOUCHSCREEN_MOVE: {
-			if (scroll_drag_start_y_ == -1) return;
 			int move = (event_data.pt.y - scroll_drag_start_y_) / data.item_height;
-			int new_top_item_index = scroll_drag_start_top_item_index_ + move;
+			int new_top_item_index = scroll_drag_start_top_item_index_ - move;
 			if (new_top_item_index < 0) new_top_item_index = 0;
 			else if (new_top_item_index > data.offscreen_items_count) new_top_item_index = data.offscreen_items_count;
 			if (new_top_item_index != top_item_index_)
 			{
+				flags_.on(FLAG_WAS_SCROLLED);
 				top_item_index_ = new_top_item_index;
 				Application::get_instance()->refresh_active_form();
 			}
@@ -606,12 +605,8 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 		break;
 
 	case EVENT_TOUCHSCREEN_UP:
-		if (scroll_drag_start_y_ == -1) set_modal_result(MR_OK);
-		else
-		{
-			scroll_drag_start_y_ = -1;
-			Application::get_instance()->refresh_active_form();
-		}
+		if (!flags_.get(FLAG_WAS_SCROLLED)) set_modal_result(MR_OK);
+		else Application::get_instance()->refresh_active_form();
 		break;
 
 	default:

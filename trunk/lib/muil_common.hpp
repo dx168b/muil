@@ -338,11 +338,13 @@ protected:
 	void get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const;
 
 	const FormColors *colors_;
+	Flags flags_;
 
 private:
 	const wchar_t *caption_;
 	const FontInfo *font_;
 	volatile ModalResult modal_result_;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -396,6 +398,8 @@ private:
 	int top_item_index_;
 	int16_t scroll_drag_start_y_;
 	int16_t scroll_drag_start_top_item_index_;
+
+	static const uint32_t FLAG_WAS_SCROLLED = 0x10000;
 
 	void get_form_data(const Display &display, StringSelectorFormData &data);
 };

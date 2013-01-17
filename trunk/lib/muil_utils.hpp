@@ -66,6 +66,8 @@ public:
 
 	bool get(uint32_t flag) const { return flags_ & flag; }
 	void set(uint32_t flag, bool value) { flags_ = (flags_ & ~flag) | (value ? flag : 0); }
+
+	void on(uint32_t flag) { flags_ |= flag; }
 	void clear(uint32_t flag) { flags_ &= ~flag; }
 	void toggle(uint32_t flag) { flags_ ^= flag; }
 
