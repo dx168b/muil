@@ -395,6 +395,7 @@ protected:
 private:
 	IStringItemsProvider *items_provider_;
 	int selection_;
+	int prev_selection_;
 	int top_item_index_;
 	int16_t scroll_drag_start_y_;
 	int16_t scroll_drag_start_top_item_index_;

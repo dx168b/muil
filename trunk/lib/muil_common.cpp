@@ -579,6 +579,7 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 			if (rel_y < 0) return;
 			int index = top_item_index_ + rel_y / data.item_height;
 			if (index >= (int)items_provider_->get_items_count()) return;
+			prev_selection_ = selection_;
 			selection_ = index;
 			paint(event_data.display, true, false);
 		}
@@ -598,6 +599,7 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 			if (new_top_item_index != top_item_index_)
 			{
 				flags_.on(FLAG_WAS_SCROLLED);
+				selection_ = prev_selection_;
 				top_item_index_ = new_top_item_index;
 				Application::get_instance()->refresh_active_form();
 			}
