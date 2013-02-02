@@ -13,7 +13,7 @@ public:                                               \
 	static void Cpl() { OUT ^= mask; }                \
 	static void On() { OUT |= mask; }                 \
 	static void Off() { OUT &= ~mask; }               \
-	static bool Signalled() { return IN & mask; }           \
+	static bool Signalled() { return IN & mask; }     \
 };
 
 #ifdef PORTA
