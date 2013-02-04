@@ -1,11 +1,11 @@
 #ifndef PIN_HPP_FILE_INCLUDED_
 #define PIN_HPP_FILE_INCLUDED_
 
-template<char port, int pin_no> class Pin {};
+template<char port, int pin_no, char active_state = 'H'> class Pin {};
 
 #define PIN_LIB_PORT_SPEC_MACRO(LETTER, DIR, OUT, IN) \
 template<int pin_no>                                  \
-class Pin<LETTER, pin_no> {                           \
+class Pin<LETTER, pin_no, 'H'> {                      \
 public:                                               \
     enum { mask = 1 << pin_no };                      \
 	static void ConfIn() { DIR &= ~mask; }            \
@@ -14,6 +14,17 @@ public:                                               \
 	static void On() { OUT |= mask; }                 \
 	static void Off() { OUT &= ~mask; }               \
 	static bool Signalled() { return IN & mask; }     \
+};                                                    \
+template<int pin_no>                                  \
+class Pin<LETTER, pin_no, 'L'> {                      \
+public:                                               \
+    enum { mask = 1 << pin_no };                      \
+	static void ConfIn() { DIR &= ~mask; }            \
+	static void ConfOut() { DIR |= mask; }            \
+	static void Cpl() { OUT ^= mask; }                \
+	static void On() { OUT &= ~mask; }                \
+	static void Off() { OUT |= mask; }                \
+	static bool Signalled() { return !(IN & mask); }  \
 };
 
 #ifdef PORTA
@@ -48,6 +59,5 @@ public:                                               \
 #endif
 
 #undef PIN_LIB_PORT_SPEC_MACRO
-
 
 #endif
