@@ -25,10 +25,10 @@ public:                                                           \
 template<int pin_no>                                              \
 class Pin<LETTER, pin_no, 'L'> : public PinBase<LETTER, pin_no> { \
 public:                                                           \
-    enum { mask = 1 << pin_no };                                  \
-	static void ConfIn() { DIR &= ~mask; }                        \
-	static void ConfOut() { DIR |= mask; }                        \
-	static void Cpl() { OUT ^= mask; }                            \
+    using PinBase<LETTER, pin_no>::mask;                          \
+	static void On() { OUT &= ~mask; }                            \
+	static void Off() { OUT |= mask; }                            \
+	static bool Signalled() { return !(IN & mask); }              \
 };
 
 #ifdef PORTA
