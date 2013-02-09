@@ -36,50 +36,10 @@ template <typename SPI, typename CSPin>
 class ILI9320DisplaySPIConnector
 {
 public:
-	static void write_index(uint8_t index)
-	{
-		SPI::template cs_low<CSPin>();
-		SPI::write(SPI_START | SPI_WR | SPI_INDEX);
-		SPI::write(0);
-		SPI::write(index);
-		SPI::template cs_high<CSPin>();
-	}
-
-	static void write_data(uint16_t data)
-	{
-		SPI::template cs_low<CSPin>();
-		SPI::write(SPI_START | SPI_WR | SPI_DATA);
-		SPI::write(data >> 8);
-		SPI::write(data & 0xFF);
-		SPI::template cs_high<CSPin>();
-	}
-
-	static uint16_t read_data()
-	{
-		SPI::template cs_low<CSPin>();
-		SPI::write(SPI_START | SPI_RD | SPI_DATA);
-		SPI::write(0);
-		uint16_t result = SPI::read(0) & 0xFF;
-		result <<= 8;
-		result |= (SPI::read(0) & 0xFF);
-		SPI::template cs_high<CSPin>();
-		return result;
-	}
-
-	static void fill_pixels(uint16_t value, uint16_t count)
-	{
-		const uint8_t high = (value & 0xFF00) >> 8;
-		const uint8_t low = (value & 0xFF);
-		write_index(0x0022);
-		SPI::template cs_low<CSPin>();
-		SPI::write(SPI_START | SPI_WR | SPI_DATA);
-		while (count--)
-		{
-			SPI::write(high);
-			SPI::write(low);
-		}
-		SPI::template cs_high<CSPin>();
-	}
+	static void write_index(uint8_t index);
+	static void write_data(uint16_t data);
+	static uint16_t read_data();
+	static void fill_pixels(uint16_t value, uint16_t count);
 
 private:
 	const static uint8_t SPI_START = 0x70; // Start byte for SPI transfer
@@ -88,6 +48,56 @@ private:
 	const static uint8_t SPI_DATA  = 0x02; // RS bit 1 within start byte
 	const static uint8_t SPI_INDEX = 0x00; // RS bit 0 within start byte
 };
+
+template <typename SPI, typename CSPin>
+void ILI9320DisplaySPIConnector<SPI, CSPin>::write_index(uint8_t index)
+{
+	SPI::template cs_low<CSPin>();
+	SPI::write(SPI_START | SPI_WR | SPI_INDEX);
+	SPI::write(0);
+	SPI::write(index);
+	SPI::template cs_high<CSPin>();
+}
+
+template <typename SPI, typename CSPin>
+void ILI9320DisplaySPIConnector<SPI, CSPin>::write_data(uint16_t data)
+{
+	SPI::template cs_low<CSPin>();
+	SPI::write(SPI_START | SPI_WR | SPI_DATA);
+	SPI::write(data >> 8);
+	SPI::write(data & 0xFF);
+	SPI::template cs_high<CSPin>();
+}
+
+template <typename SPI, typename CSPin>
+uint16_t ILI9320DisplaySPIConnector<SPI, CSPin>::read_data()
+{
+	SPI::template cs_low<CSPin>();
+	SPI::write(SPI_START | SPI_RD | SPI_DATA);
+	SPI::write(0);
+	uint16_t result = SPI::read(0) & 0xFF;
+	result <<= 8;
+	result |= (SPI::read(0) & 0xFF);
+	SPI::template cs_high<CSPin>();
+	return result;
+}
+
+template <typename SPI, typename CSPin>
+void ILI9320DisplaySPIConnector<SPI, CSPin>::fill_pixels(uint16_t value, uint16_t count)
+{
+	const uint8_t high = (value & 0xFF00) >> 8;
+	const uint8_t low = (value & 0xFF);
+	write_index(0x0022);
+	SPI::template cs_low<CSPin>();
+	SPI::write(SPI_START | SPI_WR | SPI_DATA);
+	while (count--)
+	{
+		SPI::write(high);
+		SPI::write(low);
+	}
+	SPI::template cs_high<CSPin>();
+}
+
 
 template <typename Connector, typename ResetPin>
 class ILI9320Display : public Display
@@ -113,32 +123,10 @@ private:
 		return ((x >= 0) && (y >= 0) && (x < Width) && (y < Height));
 	}
 
-	static void write_reg(uint8_t reg, uint16_t data)
-	{
-		Connector::write_index(reg);
-		Connector::write_data(data);
-	}
-
-	static uint16_t read_reg(uint8_t reg)
-	{
-		Connector::write_index(reg);
-		return Connector::read_data();
-	}
-
-	static void set_cursor(int32_t x, int32_t y)
-	{
-		write_reg(0x0020, 0xFFFF & x);
-		write_reg(0x0021, 0xFFFF & y);
-	}
-
-	static uint16_t rgb_to_value(Color color)
-	{
-		uint16_t r16 = (color.r >> 3);
-		uint16_t g16 = (color.g >> 2);
-		uint16_t b16 = (color.b >> 3);
-		return (r16 << 11) | (g16 << 5) | b16;
-	}
-
+	static void write_reg(uint8_t reg, uint16_t data);
+	static uint16_t read_reg(uint8_t reg);
+	static void set_cursor(int32_t x, int32_t y);
+	static uint16_t rgb_to_value(Color color);
 	static void set_direction(Direction dir);
 
 	static Direction cur_dir_;
@@ -323,6 +311,36 @@ void ILI9320Display<Connector, ResetPin>::paint_character(int16_t x0, int16_t y0
 			}
 		}
 	}
+}
+
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::write_reg(uint8_t reg, uint16_t data)
+{
+	Connector::write_index(reg);
+	Connector::write_data(data);
+}
+
+template <typename Connector, typename ResetPin>
+uint16_t ILI9320Display<Connector, ResetPin>::read_reg(uint8_t reg)
+{
+	Connector::write_index(reg);
+	return Connector::read_data();
+}
+
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::set_cursor(int32_t x, int32_t y)
+{
+	write_reg(0x0020, 0xFFFF & x);
+	write_reg(0x0021, 0xFFFF & y);
+}
+
+template <typename Connector, typename ResetPin>
+uint16_t ILI9320Display<Connector, ResetPin>::rgb_to_value(Color color)
+{
+	uint16_t r16 = (color.r >> 3);
+	uint16_t g16 = (color.g >> 2);
+	uint16_t b16 = (color.b >> 3);
+	return (r16 << 11) | (g16 << 5) | b16;
 }
 
 template <typename Connector, typename ResetPin>
