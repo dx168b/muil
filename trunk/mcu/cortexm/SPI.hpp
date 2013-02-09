@@ -1,6 +1,6 @@
 /*=============================================================================
 
-  Copyright (C) 2012 Denis Artyomov (denis.artyomov@gmail.com)
+  Copyright (C) 2012-2013 Denis Artyomov (denis.artyomov@gmail.com)
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
 template <int N> struct SPI_Helper {};
 
 
-template <int N, typename CSPin> // TODO: remove CSPin
+template <int N> // TODO: remove CSPin
 class SPI
 {
 public:
@@ -195,6 +195,7 @@ public:
 		addr->DR = value;
 	}
 
+	template <class CSPin>
 	static void cs_high()
 	{
 		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
@@ -202,6 +203,7 @@ public:
 		CSPin::On();
 	}
 
+	template <class CSPin>
 	static void cs_low()
 	{
 		CSPin::Off();
