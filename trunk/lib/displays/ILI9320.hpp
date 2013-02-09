@@ -32,46 +32,10 @@
 
 namespace muil {
 
-template <
-	typename SPI,
-	typename ResetPin
->
-class ILI9320Display : public Display
+template <typename SPI>
+class ILI9320DisplaySPIConnector
 {
 public:
-	enum {
-		Width        = 240,
-		Height       = 320,
-		SupportColor = 1
-	};
-
-	static void init(void (*delay_ms)(uint16_t millisoconds));
-
-	Size get_size() const;
-	uint16_t get_dpi() const;
-	void set_point(int16_t x, int16_t y, const Color &color);
-	void fill_rect(const Rect &rect, const Color &color);
-	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
-
-private:
-
-	static bool crd_is_ok(int16_t x, int16_t y)
-	{
-		return ((x >= 0) && (y >= 0) && (x < Width) && (y < Height));
-	}
-
-	static void write_reg(uint8_t reg, uint16_t data)
-	{
-		write_index(reg);
-		write_data(data);
-	}
-
-	static uint16_t read_reg(uint8_t reg)
-	{
-		write_index(reg);
-		return read_data();
-	}
-
 	static void write_index(uint8_t index)
 	{
 		SPI::cs_low();
@@ -102,15 +66,74 @@ private:
 		return result;
 	}
 
+	static void fill_pixels(uint16_t value, uint16_t count)
+	{
+		const uint8_t high = (value & 0xFF00) >> 8;
+		const uint8_t low = (value & 0xFF);
+		write_index(0x0022);
+		SPI::cs_low();
+		SPI::write(SPI_START | SPI_WR | SPI_DATA);
+		while (count--)
+		{
+			SPI::write(high);
+			SPI::write(low);
+		}
+		SPI::cs_high();
+	}
+
+
+private:
+	const static uint8_t SPI_START = 0x70;              /* Start byte for SPI transfer        */
+	const static uint8_t SPI_RD    = 0x01;              /* WR bit 1 within start              */
+	const static uint8_t SPI_WR    = 0x00;              /* WR bit 0 within start              */
+	const static uint8_t SPI_DATA  = 0x02;              /* RS bit 1 within start byte         */
+	const static uint8_t SPI_INDEX = 0x00;              /* RS bit 0 within start byte         */
+};
+
+template <
+	typename Connector,
+	typename ResetPin
+>
+class ILI9320Display : public Display
+{
+public:
+	enum {
+		Width        = 240,
+		Height       = 320,
+		SupportColor = 1
+	};
+
+	static void init(void (*delay_ms)(uint16_t millisoconds));
+
+	Size get_size() const;
+	uint16_t get_dpi() const;
+	void set_point(int16_t x, int16_t y, const Color &color);
+	void fill_rect(const Rect &rect, const Color &color);
+	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+
+private:
+
+	static bool crd_is_ok(int16_t x, int16_t y)
+	{
+		return ((x >= 0) && (y >= 0) && (x < Width) && (y < Height));
+	}
+
+	static void write_reg(uint8_t reg, uint16_t data)
+	{
+		Connector::write_index(reg);
+		Connector::write_data(data);
+	}
+
+	static uint16_t read_reg(uint8_t reg)
+	{
+		Connector::write_index(reg);
+		return Connector::read_data();
+	}
+
 	static void set_cursor(int32_t x, int32_t y)
 	{
 		write_reg(0x0020, 0xFFFF & x);
 		write_reg(0x0021, 0xFFFF & y);
-	}
-
-	static void write_data_start(void)
-	{
-		SPI::write(SPI_START | SPI_WR | SPI_DATA);
 	}
 
 	static uint16_t rgb_to_value(Color color)
@@ -124,16 +147,10 @@ private:
 	static void set_direction(Direction dir);
 
 	static Direction cur_dir_;
-
-	const static uint8_t SPI_START = 0x70;              /* Start byte for SPI transfer        */
-	const static uint8_t SPI_RD    = 0x01;              /* WR bit 1 within start              */
-	const static uint8_t SPI_WR    = 0x00;              /* WR bit 0 within start              */
-	const static uint8_t SPI_DATA  = 0x02;              /* RS bit 1 within start byte         */
-	const static uint8_t SPI_INDEX = 0x00;              /* RS bit 0 within start byte         */
 };
 
-template <typename SPI, typename ResetPin>
-void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds))
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds))
 {
 	delay_ms(50);
 	ResetPin::On();
@@ -220,20 +237,20 @@ void ILI9320Display<SPI, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds)
 	set_direction(DIR_RIGHT);
 }
 
-template <typename SPI, typename ResetPin>
-Size ILI9320Display<SPI, ResetPin>::get_size() const
+template <typename Connector, typename ResetPin>
+Size ILI9320Display<Connector, ResetPin>::get_size() const
 {
 	return Size(Width, Height);
 }
 
-template <typename SPI, typename ResetPin>
-uint16_t ILI9320Display<SPI, ResetPin>::get_dpi() const
+template <typename Connector, typename ResetPin>
+uint16_t ILI9320Display<Connector, ResetPin>::get_dpi() const
 {
 	return 96;
 }
 
-template <typename SPI, typename ResetPin>
-void ILI9320Display<SPI, ResetPin>::set_point(int16_t x, int16_t y, const Color &color)
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::set_point(int16_t x, int16_t y, const Color &color)
 {
 	x += offset_.x;
 	y += offset_.y;
@@ -242,8 +259,8 @@ void ILI9320Display<SPI, ResetPin>::set_point(int16_t x, int16_t y, const Color 
 	write_reg(0x0022, rgb_to_value(color));
 }
 
-template <typename SPI, typename ResetPin>
-void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &color)
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Color &color)
 {
 	int16_t x1 = rect.x1 + offset_.x;
 	int16_t y1 = rect.y1 + offset_.y;
@@ -263,8 +280,6 @@ void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &col
 	const uint16_t width = x2 - x1 + 1;
 	const uint16_t height = y2 - y1 + 1;
 	const uint16_t color_v = rgb_to_value(color);
-	const uint16_t bt1 = (color_v >> 8) & 0xFF;
-	const uint16_t bt2 = color_v & 0xFF;
 
 	if (width > height)
 	{
@@ -272,15 +287,7 @@ void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &col
 		for (int16_t y = y1; y <= y2; y++)
 		{
 			set_cursor(x1, y);
-			write_index(0x0022);
-			SPI::cs_low();
-			write_data_start();
-			for (uint16_t w = 0; w < width; w++)
-			{
-				SPI::write(bt1);
-				SPI::write(bt2);
-			}
-			SPI::cs_high();
+			Connector::fill_pixels(color_v, width);
 		}
 	}
 	else
@@ -289,21 +296,13 @@ void ILI9320Display<SPI, ResetPin>::fill_rect(const Rect &rect, const Color &col
 		for (int16_t x = x1; x <= x2; x++)
 		{
 			set_cursor(x, y1);
-			write_index(0x0022);
-			SPI::cs_low();
-			write_data_start();
-			for (uint16_t h = 0; h < height; h++)
-			{
-				SPI::write(bt1);
-				SPI::write(bt2);
-			}
-			SPI::cs_high();
+			Connector::fill_pixels(color_v, height);
 		}
 	}
 }
 
-template <typename SPI, typename ResetPin>
-void ILI9320Display<SPI, ResetPin>::paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color)
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color)
 {
 	x0 += offset_.x;
 	y0 += offset_.y;
@@ -331,8 +330,8 @@ void ILI9320Display<SPI, ResetPin>::paint_character(int16_t x0, int16_t y0, cons
 	}
 }
 
-template <typename SPI, typename ResetPin>
-void ILI9320Display<SPI, ResetPin>::set_direction(Direction dir)
+template <typename Connector, typename ResetPin>
+void ILI9320Display<Connector, ResetPin>::set_direction(Direction dir)
 {
 	if (dir == cur_dir_) return;
 	uint16_t am = 0;
@@ -356,8 +355,8 @@ void ILI9320Display<SPI, ResetPin>::set_direction(Direction dir)
 	cur_dir_ = dir;
 }
 
-template <typename SPI, typename ResetPin>
-Direction ILI9320Display<SPI, ResetPin>::cur_dir_ = DIR_UNDEFINED;
+template <typename Connector, typename ResetPin>
+Direction ILI9320Display<Connector, ResetPin>::cur_dir_ = DIR_UNDEFINED;
 
 } // end "namespace muil"
 
