@@ -1,6 +1,6 @@
 /*=============================================================================
 
-  Copyright (C) 2012 Denis Artyomov (denis.artyomov@gmail.com)
+  Copyright (C) 2012-2013 Denis Artyomov (denis.artyomov@gmail.com)
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -32,37 +32,37 @@
 
 namespace muil {
 
-template <typename SPI>
+template <typename SPI, typename CSPin>
 class ILI9320DisplaySPIConnector
 {
 public:
 	static void write_index(uint8_t index)
 	{
-		SPI::cs_low();
+		SPI::template cs_low<CSPin>();
 		SPI::write(SPI_START | SPI_WR | SPI_INDEX);
 		SPI::write(0);
 		SPI::write(index);
-		SPI::cs_high();
+		SPI::template cs_high<CSPin>();
 	}
 
 	static void write_data(uint16_t data)
 	{
-		SPI::cs_low();
+		SPI::template cs_low<CSPin>();
 		SPI::write(SPI_START | SPI_WR | SPI_DATA);
 		SPI::write(data >> 8);
 		SPI::write(data & 0xFF);
-		SPI::cs_high();
+		SPI::template cs_high<CSPin>();
 	}
 
 	static uint16_t read_data()
 	{
-		SPI::cs_low();
+		SPI::template cs_low<CSPin>();
 		SPI::write(SPI_START | SPI_RD | SPI_DATA);
 		SPI::write(0);
 		uint16_t result = SPI::read(0) & 0xFF;
 		result <<= 8;
 		result |= (SPI::read(0) & 0xFF);
-		SPI::cs_high();
+		SPI::template cs_high<CSPin>();
 		return result;
 	}
 
@@ -71,14 +71,14 @@ public:
 		const uint8_t high = (value & 0xFF00) >> 8;
 		const uint8_t low = (value & 0xFF);
 		write_index(0x0022);
-		SPI::cs_low();
+		SPI::template cs_low<CSPin>();
 		SPI::write(SPI_START | SPI_WR | SPI_DATA);
 		while (count--)
 		{
 			SPI::write(high);
 			SPI::write(low);
 		}
-		SPI::cs_high();
+		SPI::template cs_high<CSPin>();
 	}
 
 private:
