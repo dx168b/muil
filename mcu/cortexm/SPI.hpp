@@ -116,25 +116,26 @@ void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename CSPin>
-class HardwareSPI0
+template <int N> struct SPI_Helper {};
+
+
+template <int N, typename CSPin> // TODO: remove CSPin
+class SPI
 {
 public:
-	static void init_pins(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol)
+	typedef SPI_Helper<N> Helper;
+
+	static void init(const uint8_t bits_count, const CSMode cs, const CPHA cpha, const CPOL cpol)
 	{
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+		Helper::MISO_Pin::Mode(INPUTPULLED);
+		Helper::MISO_Pin::PullUp();
+		Helper::MOSI_Pin::Mode(ALT_OUTPUT);
+		Helper::SCK_Pin::Mode(ALT_OUTPUT);
+		if (!use_soft_cs_) Helper::CS_Pin::Mode(ALT_OUTPUT);
 
-		SPI_InitTypeDef SPI_Conf;
+		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
 
-		typedef Pin<'A', 7> MOSIPin;
-		typedef Pin<'A', 6> MISOPin;
-		typedef Pin<'A', 5> SCKPin;
-
-		MISOPin::Mode(INPUTPULLED);
-		MISOPin::PullUp();
-		MOSIPin::Mode(ALT_OUTPUT);
-		SCKPin::Mode(ALT_OUTPUT);
-
+		SPI_InitTypeDef SPI_Conf; // TODO: discard stm32 standard peripherals firmware library
 		SPI_StructInit(&SPI_Conf);
 		SPI_Conf.SPI_Mode = SPI_Mode_Master;
 		SPI_Conf.SPI_DataSize = (bits_count == 8) ? SPI_DataSize_8b : SPI_DataSize_16b;
@@ -163,32 +164,36 @@ public:
 
 		SPI_Conf.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
 
-		SPI_Init(SPI1, &SPI_Conf);
+		SPI_Init(addr, &SPI_Conf);
 
-		SPI_SSOutputCmd(SPI1, ENABLE);
-		SPI_Cmd(SPI1, ENABLE);
+		SPI_SSOutputCmd(addr, ENABLE);
+		SPI_Cmd(addr, ENABLE);
 	}
 
 	template <typename T>
 	static T write_and_read(T value)
 	{
-		while (!(SPI1->SR & SPI_SR_TXE)) {}
-		volatile uint8_t tmp = SPI1->DR;
-		SPI1->DR = value;
-		while (!(SPI1->SR & SPI_SR_RXNE)) {}
-		return SPI1->DR;
+		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
+
+		while (!(addr->SR & SPI_SR_TXE)) {}
+		volatile uint8_t tmp = addr->DR;
+		addr->DR = value;
+		while (!(addr->SR & SPI_SR_RXNE)) {}
+		return addr->DR;
 	}
 
 	template <typename T>
 	static void write(T value)
 	{
-		while (!(SPI1->SR & SPI_SR_TXE)) {}
-		SPI1->DR = value;
+		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
+		while (!(addr->SR & SPI_SR_TXE)) {}
+		addr->DR = value;
 	}
 
 	static void cs_high()
 	{
-		while (!(SPI1->SR & SPI_SR_TXE) || (SPI1->SR & SPI_SR_BSY)) {}
+		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
+		while (!(addr->SR & SPI_SR_TXE) || (addr->SR & SPI_SR_BSY)) {}
 		CSPin::On();
 	}
 
@@ -201,9 +206,34 @@ private:
 	static bool use_soft_cs_;
 };
 
-template <typename CSPin>
-bool HardwareSPI0<CSPin>::use_soft_cs_ = false;
+template <int N, typename CSPin>
+bool SPI<N, CSPin>::use_soft_cs_ = true;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <> struct SPI_Helper<1>
+{
+	enum {
+		SPI_Mem_Addr = SPI1_BASE
+	};
+
+	typedef Pin<'A', 7> MOSI_Pin;
+	typedef Pin<'A', 6> MISO_Pin;
+	typedef Pin<'A', 5> SCK_Pin;
+	typedef Pin<'A', 4> CS_Pin;
+};
+
+template <> struct SPI_Helper<2>
+{
+	enum {
+		SPI_Mem_Addr = SPI2_BASE
+	};
+
+	typedef Pin<'B', 15> MOSI_Pin;
+	typedef Pin<'B', 14> MISO_Pin;
+	typedef Pin<'B', 13> SCK_Pin;
+	typedef Pin<'B', 12> CS_Pin;
+};
+
 
 #endif
