@@ -152,8 +152,6 @@ public:
 	{
 		static const uint16_t SPI_Mode_Master = SPI_CR1_MSTR | SPI_CR1_SSI;
 
-		use_soft_cs_ = (cs_mode == CS_Soft);
-
 		// initialize pins
 		Helper::MISO_Pin::Mode(INPUTPULLED);
 		Helper::MISO_Pin::PullUp();
@@ -167,7 +165,7 @@ public:
 		cr1 |= (rate_prescaler | cs_mode | cpha | cpol | bits_count | SPI_Mode_Master | SPI_CR1_SPE);
 
 		// Configure CS output
-		if (!use_soft_cs_)
+		if (cs_mode == CS_Hard)
 		{
 			Helper::CS_Pin::Mode(ALT_OUTPUT);
 			addr->CR2 |= SPI_CR2_SSOE;
@@ -208,13 +206,7 @@ public:
 	{
 		CSPin::Off();
 	}
-
-private:
-	static bool use_soft_cs_;
 };
-
-template <int N, typename CSPin>
-bool SPI<N, CSPin>::use_soft_cs_ = true;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
