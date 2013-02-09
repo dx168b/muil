@@ -32,7 +32,7 @@
 
 namespace muil {
 
-template<class SPI, class PressedPin>
+template<class SPI, class CSPin, class PressedPin>
 class ADS7843TouchScreen : public TouchScreen
 {
 public:
@@ -69,21 +69,21 @@ private:
 	Point last_pos_;
 };
 
-template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::init()
+template<class SPI, class CSPin, class PressedPin>
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::init()
 {
 }
 
-template<class SPI, class PressedPin>
-bool ADS7843TouchScreen<SPI, PressedPin>::is_pressed()
+template<class SPI, class CSPin, class PressedPin>
+bool ADS7843TouchScreen<SPI, CSPin, PressedPin>::is_pressed()
 {
 	bool result = !PressedPin::Signalled();
 	if (!result) last_pos_ = Point(-1, -1);
 	return result;
 }
 
-template<class SPI, class PressedPin>
-Point ADS7843TouchScreen<SPI, PressedPin>::get_pos()
+template<class SPI, class CSPin, class PressedPin>
+Point ADS7843TouchScreen<SPI, CSPin, PressedPin>::get_pos()
 {
 	if (!is_pressed()) return Point(-1, -1);
 	if (matrix_.Divider == 0) return Point(-1, -1);
@@ -100,8 +100,8 @@ Point ADS7843TouchScreen<SPI, PressedPin>::get_pos()
 	return result;
 }
 
-template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms)
+template<class SPI, class CSPin, class PressedPin>
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms)
 {
 	const Color bg_color = Color::white();
 
@@ -138,34 +138,34 @@ void ADS7843TouchScreen<SPI, PressedPin>::calibrate(Display &display, const Font
 	calc_matrix(display_points, touchscreen_points);
 }
 
-template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::paint_cross(Display &display, Point pt, const Color &color)
+template<class SPI, class CSPin, class PressedPin>
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::paint_cross(Display &display, Point pt, const Color &color)
 {
 	int16_t line_size = display.get_dpi()/10;
 	display.fill_rect(Rect(pt.x-1, pt.y-line_size, pt.x+1, pt.y+line_size), color);
 	display.fill_rect(Rect(pt.x-line_size, pt.y-1, pt.x+line_size, pt.y+1), color);
 }
 
-template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::wait_for_press()
+template<class SPI, class CSPin, class PressedPin>
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::wait_for_press()
 {
 	while (!is_pressed());
 }
 
-template<class SPI, class PressedPin>
-int16_t ADS7843TouchScreen<SPI, PressedPin>::read_coord(uint8_t cmd)
+template<class SPI, class CSPin, class PressedPin>
+int16_t ADS7843TouchScreen<SPI, CSPin, PressedPin>::read_coord(uint8_t cmd)
 {
-	SPI::cs_low();
+	SPI::template cs_low<CSPin>();
 	SPI::write(cmd);
 	uint32_t result = SPI::write_and_read(0) << 8;
 	result |= SPI::write_and_read(0);
-	SPI::cs_high();
+	SPI::template cs_high<CSPin>();
 	result >>= 3;
 	return result & 0xFFF;
 }
 
-template<class SPI, class PressedPin>
-void ADS7843TouchScreen<SPI, PressedPin>::get_filtered_coords(int16_t &x, int16_t &y)
+template<class SPI, class CSPin, class PressedPin>
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::get_filtered_coords(int16_t &x, int16_t &y)
 {
 	int16_t x_values[BufSize];
 	int16_t y_values[BufSize];
@@ -179,8 +179,8 @@ void ADS7843TouchScreen<SPI, PressedPin>::get_filtered_coords(int16_t &x, int16_
 	y = get_filtered_value(y_values);
 }
 
-template<class SPI, class PressedPin>
-int16_t ADS7843TouchScreen<SPI, PressedPin>::get_filtered_value(int16_t *values)
+template<class SPI, class CSPin, class PressedPin>
+int16_t ADS7843TouchScreen<SPI, CSPin, PressedPin>::get_filtered_value(int16_t *values)
 {
 	int16_t aver;
 	for (size_t step = 0; step < 2 * BufSize / 3; step++)
@@ -222,8 +222,8 @@ int16_t ADS7843TouchScreen<SPI, PressedPin>::get_filtered_value(int16_t *values)
 	return aver;
 }
 
-template<class SPI, class PressedPin>
-bool ADS7843TouchScreen<SPI, PressedPin>::calc_matrix(const Point *displayPtr, const Point *screenPtr)
+template<class SPI, class CSPin, class PressedPin>
+bool ADS7843TouchScreen<SPI, CSPin, PressedPin>::calc_matrix(const Point *displayPtr, const Point *screenPtr)
 {
 	matrix_.Divider = ((screenPtr[0].x - screenPtr[2].x) * (screenPtr[1].y - screenPtr[2].y))
 			- ((screenPtr[1].x - screenPtr[2].x) * (screenPtr[0].y - screenPtr[2].y));
