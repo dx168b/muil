@@ -69,12 +69,19 @@ enum SPI_BRPrescaler
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class EmptyCSPin
+{
+public:
+	static void On() {}
+	static void Off() {}
+};
+
 template <
 	unsigned Delay,
 	typename MOSIPin,
 	typename MISOPin,
 	typename SCKPin,
-	typename CSPin
+	typename CSPin = EmptyCSPin
 >
 class SoftwareSPI
 {
@@ -82,8 +89,8 @@ public:
 	static void init(uint8_t bits_count, SPI_CSMode cs, SPI_CPHA cpha, SPI_CPOL cpol);
 	static uint16_t write_and_read(uint16_t value);
 	static void write(uint16_t value);
-	static void cs_high() { CSPin::On(); }
-	static void cs_low() { CSPin::Off(); }
+	template <typename SoftCSPin> static void cs_high() { SoftCSPin::On(); }
+	template <typename SoftCSPin> static void cs_low() { SoftCSPin::Off(); }
 
 private:
 	static uint8_t bits_count_;
