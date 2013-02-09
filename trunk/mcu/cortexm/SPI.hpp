@@ -28,24 +28,42 @@
 #ifndef SPI_HPP_FILE_INCLUDED_
 #define SPI_HPP_FILE_INCLUDED_
 
-#include "stm32f10x_spi.h"
+#include "stm32f10x.h"
 
-enum CSMode
+enum SPI_BitsCount
 {
-	CS_Hard,
-	CS_Soft,
+	SPIBits_8 = 0,
+	SPIBits_16 = SPI_CR1_DFF
 };
 
-enum CPHA
+enum SPI_CSMode
 {
-	CPHA_1Edge,
-	CPHA_2Edge
+	CS_Hard = 0,
+	CS_Soft = SPI_CR1_SSM,
 };
 
-enum CPOL
+enum SPI_CPHA
 {
-	CPOL_Low,
-	CPOL_High
+	CPHA_1Edge = 0,
+	CPHA_2Edge = SPI_CR1_CPHA
+};
+
+enum SPI_CPOL
+{
+	CPOL_Low = 0,
+	CPOL_High = SPI_CR1_CPOL
+};
+
+enum SPI_BRPrescaler
+{
+	SPI_BaudRatePrescaler_2 = 0x0000,
+	SPI_BaudRatePrescaler_4 = 0x0008,
+	SPI_BaudRatePrescaler_8 = 0x0010,
+	SPI_BaudRatePrescaler_16 = 0x0018,
+	SPI_BaudRatePrescaler_32 = 0x0020,
+	SPI_BaudRatePrescaler_64 = 0x0028,
+	SPI_BaudRatePrescaler_128 = 0x0030,
+	SPI_BaudRatePrescaler_256 = 0x0038
 };
 
 
@@ -61,7 +79,7 @@ template <
 class SoftwareSPI
 {
 public:
-	static void init(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol);
+	static void init(uint8_t bits_count, SPI_CSMode cs, SPI_CPHA cpha, SPI_CPOL cpol);
 	static uint16_t write_and_read(uint16_t value);
 	static void write(uint16_t value);
 	static void cs_high() { CSPin::On(); }
@@ -79,7 +97,7 @@ template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, t
 bool SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::use_soft_cs_ = false;
 
 template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::init(uint8_t bits_count, CSMode cs, CPHA cpha, CPOL cpol)
+void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::init(uint8_t bits_count, SPI_CSMode cs, SPI_CPHA cpha, SPI_CPOL cpol)
 {
 	use_soft_cs_ = (cs == CS_Soft);
 	bits_count_ = bits_count;
@@ -125,49 +143,38 @@ class SPI
 public:
 	typedef SPI_Helper<N> Helper;
 
-	static void init(const uint8_t bits_count, const CSMode cs, const CPHA cpha, const CPOL cpol)
+	static void init(
+		const SPI_BitsCount   bits_count,
+		const SPI_CSMode      cs_mode,
+		const SPI_CPHA        cpha,
+		const SPI_CPOL        cpol,
+		const SPI_BRPrescaler rate_prescaler)
 	{
+		static const uint16_t SPI_Mode_Master = SPI_CR1_MSTR | SPI_CR1_SSI;
+
+		use_soft_cs_ = (cs_mode == CS_Soft);
+
+		// initialize pins
 		Helper::MISO_Pin::Mode(INPUTPULLED);
 		Helper::MISO_Pin::PullUp();
 		Helper::MOSI_Pin::Mode(ALT_OUTPUT);
 		Helper::SCK_Pin::Mode(ALT_OUTPUT);
-		if (!use_soft_cs_) Helper::CS_Pin::Mode(ALT_OUTPUT);
 
 		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
 
-		SPI_InitTypeDef SPI_Conf; // TODO: discard stm32 standard peripherals firmware library
-		SPI_StructInit(&SPI_Conf);
-		SPI_Conf.SPI_Mode = SPI_Mode_Master;
-		SPI_Conf.SPI_DataSize = (bits_count == 8) ? SPI_DataSize_8b : SPI_DataSize_16b;
-		SPI_Conf.SPI_NSS = (cs == CS_Soft) ? SPI_NSS_Soft : SPI_NSS_Hard;
-		switch (cpha)
+		uint16_t cr1 = addr->CR1 & 0x3040;
+
+		cr1 |= (rate_prescaler | cs_mode | cpha | cpol | bits_count | SPI_Mode_Master | SPI_CR1_SPE);
+
+		// Configure CS output
+		if (!use_soft_cs_)
 		{
-		case CPHA_1Edge:
-			SPI_Conf.SPI_CPHA = SPI_CPHA_1Edge;
-			break;
-
-		case CPHA_2Edge:
-			SPI_Conf.SPI_CPHA = SPI_CPHA_2Edge;
-			break;
+			Helper::CS_Pin::Mode(ALT_OUTPUT);
+			addr->CR2 |= SPI_CR2_SSOE;
 		}
+		else addr->CR2 &= ~SPI_CR2_SSOE;
 
-		switch (cpol)
-		{
-		case CPOL_Low:
-			SPI_Conf.SPI_CPOL = SPI_CPOL_Low;
-			break;
-
-		case CPOL_High:
-			SPI_Conf.SPI_CPOL = SPI_CPOL_High;
-			break;
-		}
-
-		SPI_Conf.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
-
-		SPI_Init(addr, &SPI_Conf);
-
-		SPI_SSOutputCmd(addr, ENABLE);
-		SPI_Cmd(addr, ENABLE);
+		addr->CR1 = cr1;
 	}
 
 	template <typename T>
