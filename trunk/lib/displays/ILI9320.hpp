@@ -81,19 +81,15 @@ public:
 		SPI::cs_high();
 	}
 
-
 private:
-	const static uint8_t SPI_START = 0x70;              /* Start byte for SPI transfer        */
-	const static uint8_t SPI_RD    = 0x01;              /* WR bit 1 within start              */
-	const static uint8_t SPI_WR    = 0x00;              /* WR bit 0 within start              */
-	const static uint8_t SPI_DATA  = 0x02;              /* RS bit 1 within start byte         */
-	const static uint8_t SPI_INDEX = 0x00;              /* RS bit 0 within start byte         */
+	const static uint8_t SPI_START = 0x70; // Start byte for SPI transfer
+	const static uint8_t SPI_RD    = 0x01; // WR bit 1 within start
+	const static uint8_t SPI_WR    = 0x00; // WR bit 0 within start
+	const static uint8_t SPI_DATA  = 0x02; // RS bit 1 within start byte
+	const static uint8_t SPI_INDEX = 0x00; // RS bit 0 within start byte
 };
 
-template <
-	typename Connector,
-	typename ResetPin
->
+template <typename Connector, typename ResetPin>
 class ILI9320Display : public Display
 {
 public:
@@ -112,7 +108,6 @@ public:
 	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
 
 private:
-
 	static bool crd_is_ok(int16_t x, int16_t y)
 	{
 		return ((x >= 0) && (y >= 0) && (x < Width) && (y < Height));
