@@ -111,7 +111,7 @@ void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(Display &display, con
 	{
 		for (;;)
 		{
-			display.paint_text(font, 1, 1, text, Color::black());
+			display.paint_text(1, 1, text, font, Color::black());
 			paint_cross(display, display_points[i], Color::blue());
 
 			while (is_pressed());

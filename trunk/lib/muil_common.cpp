@@ -191,7 +191,7 @@ void Widget::refresh()
 
 void Label::paint(PaintData &paint_data)
 {
-	paint_data.display.paint_text(paint_data.font, 0, 0, text_, Color::black());
+	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,7 +426,9 @@ struct FormTouchScreenEventData
 {
 	EventType type;
 	Point pt;
-	Display *display;
+	Display &display;
+
+	FormTouchScreenEventData(Display &display) : display(display) {}
 };
 
 Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *colors) :
@@ -437,19 +439,19 @@ Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *color
 	colors_ = colors ? colors : &default_colors;
 }
 
-void Form::paint(Display *display, bool widgets_only, bool force_repaint_all_widgets)
+void Form::paint(Display &display, bool widgets_only, bool force_repaint_all_widgets)
 {
 	Rect caption_rect, client_rect;
 
 	get_form_rects(display, &caption_rect, &client_rect);
 
-	PaintData paint_data(*display, font_, colors_);
+	PaintData paint_data(display, font_, colors_);
 
 	if (!widgets_only)
 	{
-		display->set_offset(Point(0, 0));
-		display->fill_rect(caption_rect, colors_->caption);
-		display->paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
+		display.set_offset(Point(0, 0));
+		display.fill_rect(caption_rect, colors_->caption);
+		display.paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -460,9 +462,9 @@ int16_t Form::get_caption_height() const
 	return 3 * font_->heightPages / 2;
 }
 
-void Form::get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const
+void Form::get_form_rects(const Display &display, Rect *caption_rect, Rect *client_rect) const
 {
-	Size disp_size = display->get_size();
+	Size disp_size = display.get_size();
 	int16_t capt_height = get_caption_height();
 	if (caption_rect) *caption_rect = Rect(0, 0, disp_size.width-1, capt_height-1);
 	if (client_rect) *client_rect = Rect(0, capt_height, disp_size.width-1, disp_size.height-1);
@@ -568,7 +570,7 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 {
 	StringSelectorFormData data;
 
-	get_form_data(*event_data.display, data);
+	get_form_data(event_data.display, data);
 
 	switch (event_data.type)
 	{
@@ -686,7 +688,7 @@ int16_t StringSelectorForm::paint_item(
 
 void StringSelectorForm::get_form_data(const Display &display, StringSelectorFormData &data)
 {
-	get_form_rects(&display, NULL, &data.client_rect);
+	get_form_rects(display, NULL, &data.client_rect);
 	int16_t client_height = data.client_rect.height();
 	data.item_count = items_provider_->get_items_count();
 	data.item_height = 3*get_font()->heightPages/2;
@@ -747,9 +749,7 @@ void Application::process_touch_screen_events()
 	TouchScreen *touch_screen = get_touch_screen();
 	bool touch_screen_pressed = touch_screen->is_pressed();
 
-	FormTouchScreenEventData event;
-
-	event.display = get_display();
+	FormTouchScreenEventData event(*get_display());
 
 	if (touch_screen_pressed)
 	{
