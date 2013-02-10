@@ -154,7 +154,7 @@ public:
 	void draw_rect(const Rect &rect, int16_t width, const Color &color);
 	void draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
 	void draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
-	void paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar_t *text, const Color &color);
+	void paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color);
 	void paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
 	void fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color);
 

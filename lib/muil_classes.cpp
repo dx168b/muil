@@ -113,7 +113,7 @@ void Display::draw_horizontal_gradient(const Rect &rect, const Color &color1, co
 		fill_rect(Rect(x, rect.y1, x, rect.y2), Color::between(color1, color2, i, width));
 }
 
-void Display::paint_text(const FontInfo *font, int16_t x, int16_t y, const wchar_t *text, const Color &color)
+void Display::paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color)
 {
 	for (size_t i = 0; text[i]; i++)
 	{
@@ -163,7 +163,7 @@ void Display::paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar
 		return;
 	}
 
-	paint_text(font, x, y, text, color);
+	paint_text(x, y, text, font, color);
 }
 
 Size Display::get_text_size(const FontInfo *font, const wchar_t *text)

@@ -325,7 +325,7 @@ public:
 
 	virtual void handle_touch_screen_event(FormTouchScreenEventData &event_data) = 0;
 
-	void paint(Display *display, bool widgets_only, bool force_repaint_all_widgets);
+	void paint(Display &display, bool widgets_only, bool force_repaint_all_widgets);
 
 protected:
 	virtual void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) = 0;
@@ -335,7 +335,7 @@ protected:
 
 	int16_t get_caption_height() const;
 
-	void get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const;
+	void get_form_rects(const Display &display, Rect *caption_rect, Rect *client_rect) const;
 
 	const FormColors *colors_;
 	Flags<uint32_t> flags_;
