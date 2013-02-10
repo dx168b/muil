@@ -58,21 +58,21 @@ template <typename T> T min(const T v1, const T v2)
 	return v1 < v2 ? v1 : v2;
 }
 
-
+template<typename T>
 class Flags
 {
 public:
-	Flags(uint32_t initial_flags = 0) : flags_(initial_flags) {}
+	Flags(T initial_flags = 0) : flags_(initial_flags) {}
 
-	bool get(uint32_t flag) const { return flags_ & flag; }
-	void set(uint32_t flag, bool value) { flags_ = (flags_ & ~flag) | (value ? flag : 0); }
+	bool get(T flag) const { return flags_ & flag; }
+	void set(T flag, bool value) { flags_ = (flags_ & ~flag) | (value ? flag : 0); }
 
-	void on(uint32_t flag) { flags_ |= flag; }
-	void clear(uint32_t flag) { flags_ &= ~flag; }
-	void toggle(uint32_t flag) { flags_ ^= flag; }
+	void on(T flag) { flags_ |= flag; }
+	void clear(T flag) { flags_ &= ~flag; }
+	void toggle(T flag) { flags_ ^= flag; }
 
 private:
-	uint32_t flags_;
+	T flags_;
 };
 
 
