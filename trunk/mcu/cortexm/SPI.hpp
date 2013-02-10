@@ -143,8 +143,7 @@ void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
 
 template <int N> struct SPI_Helper {};
 
-
-template <int N> // TODO: remove CSPin
+template <int N>
 class SPI
 {
 public:

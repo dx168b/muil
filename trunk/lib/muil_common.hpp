@@ -81,7 +81,7 @@ public:
 
 protected:
 	Point pos_;
-	Flags flags_;
+	Flags<uint32_t> flags_;
 
 	friend class WidgetsPaintVisitor;
 };
@@ -338,7 +338,7 @@ protected:
 	void get_form_rects(const Display *display, Rect *caption_rect, Rect *client_rect) const;
 
 	const FormColors *colors_;
-	Flags flags_;
+	Flags<uint32_t> flags_;
 
 private:
 	const wchar_t *caption_;
@@ -435,7 +435,7 @@ private:
 	Form *active_form_;
 	static Application *inst_;
 	Point prev_pt_;
-	Flags flags_;
+	Flags<uint32_t> flags_;
 	int32_t pressed_counter_;
 };
 
