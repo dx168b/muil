@@ -285,7 +285,13 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 }
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color)
+void ILI9320Display<Connector, ResetPin>::paint_character(
+	int16_t       x0,
+	int16_t       y0,
+	const uint8_t *data,
+	uint8_t       width,
+	uint8_t       height,
+	const Color   &color)
 {
 	x0 += offset_.x;
 	y0 += offset_.y;
