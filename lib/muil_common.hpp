@@ -65,22 +65,15 @@ enum ModalResult
 class Widget
 {
 public:
-	Widget(const Point &pos) :
-		pos_(pos) {}
+	virtual void paint(PaintData &paint_data, const Size &size) = 0;
 
-	virtual void paint(PaintData &paint_data) = 0;
-
-	virtual void touch_screen_event(EventType type, const Point pt, Form *form) {}
-
-	Point get_pos() const { return pos_; }
-	virtual Size get_size() const { return Size(-1, -1); }
+	virtual void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) {}
 
 	void refresh();
 
 	const static uint32_t FLAG_INVALID = 0x0001;
 
 protected:
-	Point pos_;
 	Flags<uint32_t> flags_;
 
 	friend class WidgetsPaintVisitor;
@@ -88,25 +81,12 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class SizedWidget : public Widget
-{
-public:
-	SizedWidget(const Point pos, const Size size) : Widget(pos), size_(size) {}
-
-	Size get_size() const { return size_; }
-
-protected:
-	Size size_;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 class Label : public Widget
 {
 public:
-	Label(const Point &pos, const wchar_t *text) : Widget(pos), text_(text) {}
+	Label(const wchar_t *text) : text_(text) {}
 
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 
 private:
 	const wchar_t *text_;
@@ -114,13 +94,12 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Indicator : public SizedWidget
+class Indicator : public Widget
 {
 public:
-	Indicator(const Point &pos, const Size &size) : SizedWidget(pos, size) {}
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	virtual const wchar_t* get_text() = 0;
 };
 
@@ -129,10 +108,9 @@ protected:
 class ValueIndicator : public Indicator
 {
 public:
-	ValueIndicator(const Point &pos, const Size &size, int value = 0, uint8_t dec_pt = 0) :
-		Indicator(pos, size),
-		value_   (value),
-		dec_pt_  (dec_pt) {}
+	ValueIndicator(int value = 0, uint8_t dec_pt = 0) :
+		value_(value),
+		dec_pt_(dec_pt) {}
 
 	void set_value(int value);
 
@@ -146,15 +124,13 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class PressibleWidget : public SizedWidget
+class PressibleWidget : public Widget
 {
 public:
-	PressibleWidget(const Point pos, const Size size) : SizedWidget(pos, size) {}
-
 	static const uint32_t FLAG_PRESSED = 0x0002;
 
 protected:
-	void touch_screen_event(EventType type, const Point pt, Form *form);
+	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
 	virtual void pressed(Form *form) = 0;
 };
 
@@ -163,9 +139,7 @@ protected:
 class Button : public PressibleWidget
 {
 public:
-	Button(const Point &pos, const Size &size, const wchar_t *text, bool default_btn = false) :
-		PressibleWidget(pos, size),
-		text_          (text)
+	Button(const wchar_t *text, bool default_btn = false) : text_(text)
 	{
 		flags_.set(FLAG_DEFAULT, default_btn);
 	}
@@ -173,7 +147,7 @@ public:
 	static const uint32_t FLAG_DEFAULT = 0x10000;
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form) {}
 
 private:
@@ -185,9 +159,7 @@ private:
 class CheckBox : public PressibleWidget
 {
 public:
-	CheckBox(const Point &pos, const Size &size, const wchar_t *text, bool checked = false) :
-		PressibleWidget(pos, size),
-		text_          (text)
+	CheckBox(const wchar_t *text, bool checked = false) : text_(text)
 	{
 		flags_.set(FLAG_CHECKED, checked);
 	}
@@ -195,7 +167,7 @@ public:
 	static const uint32_t FLAG_CHECKED = 0x10000;
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form);
 
 private:
@@ -206,21 +178,20 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class UpDownWidget : public SizedWidget
+class UpDownWidget : public Widget
 {
 public:
-	UpDownWidget(const Point &pos, const Size &size, uint8_t dec_pt = 0, int value = 0, int min = INT_MIN, int max = INT_MAX) :
-		SizedWidget(pos, size),
-		value_     (value),
-		max_       (max),
-		min_       (min),
-		dec_pt_    (dec_pt) {}
+	UpDownWidget(uint8_t dec_pt = 0, int value = 0, int min = INT_MIN, int max = INT_MAX) :
+		value_ (value),
+		max_   (max),
+		min_   (min),
+		dec_pt_(dec_pt) {}
 
 	void set_value(int value);
 
 protected:
-	void paint(PaintData &paint_data);
-	void touch_screen_event(EventType type, const Point pt, Form *form);
+	void paint(PaintData &paint_data, const Size &size);
+	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
 
 	static const uint32_t FLAG_UP_BTN_PRESSED = 0x10000;
 	static const uint32_t FLAG_DOWN_BTN_PRESSED = 0x20000;
@@ -231,7 +202,7 @@ private:
 	int min_;
 	uint8_t dec_pt_;
 
-	void get_buttons_rects(Display &display, Rect &up_btn_rect, Rect &down_btn_rect);
+	void get_buttons_rects(const Size &size, Display &display, Rect &up_btn_rect, Rect &down_btn_rect);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,8 +219,7 @@ public:
 class Choice : public PressibleWidget, public IStringItemsProvider // TODO: IStringItemsProvider затолкать внутрь
 {
 public:
-	Choice(const Point &pos, const Size &size, const wchar_t *caption, int selection) :
-		PressibleWidget(pos, size),
+	Choice(const wchar_t *caption, int selection) :
 		selection_(selection),
 		caption_(caption) {}
 
@@ -257,7 +227,7 @@ public:
 	void set_selection(int selection);
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form);
 
 private:
@@ -270,8 +240,8 @@ private:
 class StringsChoice : public Choice
 {
 public:
-	StringsChoice(const Point &pos, const Size &size, const wchar_t *caption, const wchar_t** items, int sel_index) :
-		Choice(pos, size, caption, sel_index),
+	StringsChoice(const wchar_t *caption, const wchar_t** items, int sel_index) :
+		Choice(caption, sel_index),
 		items_(items) {}
 
 	size_t get_items_count();
@@ -286,7 +256,7 @@ private:
 class IWidgetVisitor
 {
 public:
-	virtual void visit(Widget &widget) = 0;
+	virtual void visit(Widget &widget, const Point &pos, const Size &size = Size(-1, -1)) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,11 +331,14 @@ public:
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
 	virtual void widget_event(EventType type, const Widget *widget) {}
+	virtual void get_widget_color(const Widget *widget, Color &color) {}
 
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 
 private:
 	Widget *last_pressed_widget_;
+	Point last_pressed_widget_pos_;
+	Size last_pressed_widget_size_;
 
 	friend class TouchScreenPressVisitor; // for calling widget_event function
 };

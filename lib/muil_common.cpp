@@ -130,13 +130,13 @@ public:
 		client_rect_(client_rect),
 		force_repaint_all_widgets_(force_repaint_all_widgets) {}
 
-	void visit(Widget &widget)
+	void visit(Widget &widget, const Point &pos, const Size &size)
 	{
 		if (widget.flags_.get(Widget::FLAG_INVALID) || force_repaint_all_widgets_)
 		{
-			Point widget_pos = widget.get_pos().moved(client_rect_.x1, client_rect_.y1);
+			Point widget_pos = pos.moved(client_rect_.x1, client_rect_.y1);
 			paint_data_.display.set_offset(widget_pos);
-			widget.paint(paint_data_);
+			widget.paint(paint_data_, size);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
 	}
@@ -152,22 +152,29 @@ private:
 class TouchScreenPressVisitor : public IWidgetVisitor
 {
 public:
-	TouchScreenPressVisitor(WidgetsForm &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget) :
+	TouchScreenPressVisitor(WidgetsForm &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget, Point &last_pressed_widget_pos, Size &last_pressed_widget_size) :
 		form_(form),
 		client_rect_(client_rect),
 		type_(type),
 		pt_(pt),
-		last_pressed_widget_(last_pressed_widget) {}
+		last_pressed_widget_(last_pressed_widget),
+		last_pressed_widget_pos_(last_pressed_widget_pos),
+		last_pressed_widget_size_(last_pressed_widget_size) {}
 
-	void visit(Widget &widget)
+	void visit(Widget &widget, const Point &pos, const Size &size)
 	{
-		Rect rect(widget.get_pos().moved(client_rect_.x1, client_rect_.y1), widget.get_size());
+		Rect rect(pos.moved(client_rect_.x1, client_rect_.y1), size);
 		if (rect.contains(pt_))
 		{
 			const Point widget_pt = Point(pt_.x-rect.x1, pt_.y-rect.y1);
-			widget.touch_screen_event(type_, widget_pt, &form_);
+			widget.touch_screen_event(type_, widget_pt, size, &form_);
 			form_.widget_event(type_, &widget);
-			if (type_ == EVENT_TOUCHSCREEN_DOWN) *last_pressed_widget_ = &widget;
+			if (type_ == EVENT_TOUCHSCREEN_DOWN)
+			{
+				*last_pressed_widget_ = &widget;
+				last_pressed_widget_pos_ = pos;
+				last_pressed_widget_size_ = size;
+			}
 		}
 	}
 
@@ -177,6 +184,9 @@ private:
 	const EventType type_;
 	const Point pt_;
 	Widget **last_pressed_widget_;
+	Point &last_pressed_widget_pos_;
+	Size &last_pressed_widget_size_;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,16 +199,16 @@ void Widget::refresh()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Label::paint(PaintData &paint_data)
+void Label::paint(PaintData &paint_data, const Size &size)
 {
 	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Indicator::paint(PaintData &paint_data)
+void Indicator::paint(PaintData &paint_data, const Size &size)
 {
-	Rect rect(0, 0, size_.width, size_.height);
+	Rect rect(0, 0, size.width, size.height);
 	paint_data.display.fill_rect(rect, Color::white());
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, Color::black());
 }
@@ -221,7 +231,7 @@ const wchar_t* ValueIndicator::get_text()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PressibleWidget::touch_screen_event(EventType type, const Point pt, Form *form)
+void PressibleWidget::touch_screen_event(EventType type, const Point pt, const Size &size, Form *form)
 {
 	switch (type)
 	{
@@ -243,9 +253,9 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, Form *f
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Button::paint(PaintData &paint_data)
+void Button::paint(PaintData &paint_data, const Size &size)
 {
-	Rect rect(0, 0, size_.width, size_.height);
+	Rect rect(0, 0, size.width, size.height);
 
 	paint_button(paint_data, rect, flags_.get(FLAG_PRESSED), true);
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
@@ -253,13 +263,13 @@ void Button::paint(PaintData &paint_data)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CheckBox::paint(PaintData &paint_data)
+void CheckBox::paint(PaintData &paint_data, const Size &size)
 {
-	Rect check_rect(0, 0, size_.height, size_.height);
+	Rect check_rect(0, 0, size.height, size.height);
 	paint_button(paint_data, check_rect, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
-	Rect tect_rect(size_.height+size_.height/6, 0, size_.width, size_.height);
+	Rect tect_rect(size.height+size.height/6, 0, size.width, size.height);
 	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, Color::black());
 }
 
@@ -287,13 +297,13 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpDownWidget::paint(PaintData &paint_data)
+void UpDownWidget::paint(PaintData &paint_data, const Size &size)
 {
 	Rect up_btn_rect, down_btn_rect;
 
-	get_buttons_rects(paint_data.display, up_btn_rect, down_btn_rect);
+	get_buttons_rects(size, paint_data.display, up_btn_rect, down_btn_rect);
 
-	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, size_.height);
+	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, size.height);
 	paint_data.display.fill_rect(value_rect, Color::white());
 
 	paint_button(paint_data, up_btn_rect.inflated(1), flags_.get(FLAG_UP_BTN_PRESSED), false);
@@ -308,19 +318,19 @@ void UpDownWidget::paint(PaintData &paint_data)
 	paint_data.display.paint_text_in_rect(value_rect, HA_CENTER, text_buf, paint_data.font, Color::black());
 }
 
-void UpDownWidget::get_buttons_rects(Display &display, Rect &up_btn_rect, Rect &down_btn_rect)
+void UpDownWidget::get_buttons_rects(const Size &size, Display &display, Rect &up_btn_rect, Rect &down_btn_rect)
 {
 	uint16_t btn_width = display.get_dpi() / 4;
-	int16_t my = size_.height / 2;
-	int16_t x1 = size_.width - btn_width;
-	up_btn_rect = Rect(x1, 0, size_.width, my);
-	down_btn_rect = Rect(x1, my, size_.width, size_.height);
+	int16_t my = size.height / 2;
+	int16_t x1 = size.width - btn_width;
+	up_btn_rect = Rect(x1, 0, size.width, my);
+	down_btn_rect = Rect(x1, my, size.width, size.height);
 }
 
-void UpDownWidget::touch_screen_event(EventType type, const Point pt, Form *form)
+void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size &size, Form *form)
 {
 	Rect up_btn_rect, down_btn_rect;
-	get_buttons_rects(*Application::get_instance()->get_display(), up_btn_rect, down_btn_rect);
+	get_buttons_rects(size, *Application::get_instance()->get_display(), up_btn_rect, down_btn_rect);
 	bool hit_up_btn = up_btn_rect.contains(pt);
 	bool hit_down_btn = down_btn_rect.contains(pt);
 
@@ -355,9 +365,8 @@ void UpDownWidget::set_value(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Choice::paint(PaintData &paint_data)
+void Choice::paint(PaintData &paint_data, const Size &size)
 {
-	const Size size = get_size();
 	Rect btn_rect = Rect(size.width-size.height, 0, size.width, size.height);
 	Rect data_rect = Rect(0, 0, btn_rect.x1, size.height);
 
@@ -504,17 +513,17 @@ void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data
 	{
 		if (last_pressed_widget_)
 		{
-			const Point widget_pos = last_pressed_widget_->get_pos().moved(client_rect.x1, client_rect.y1);
+			const Point widget_pos = last_pressed_widget_pos_.moved(client_rect.x1, client_rect.y1);
 			const Point up_rel_pos = event_data.pt.moved(-widget_pos.x, -widget_pos.y);
-			last_pressed_widget_->touch_screen_event(EVENT_TOUCHSCREEN_UP, up_rel_pos, this);
-			const Rect widget_rect(Point(0, 0), last_pressed_widget_->get_size());
+			last_pressed_widget_->touch_screen_event(EVENT_TOUCHSCREEN_UP, up_rel_pos, last_pressed_widget_size_, this);
+			const Rect widget_rect(Point(0, 0), last_pressed_widget_size_);
 			if (widget_rect.contains(up_rel_pos)) widget_event(EVENT_TOUCHSCREEN_UP, last_pressed_widget_);
 			last_pressed_widget_ = NULL;
 		}
 	}
 	else
 	{
-		TouchScreenPressVisitor touch_screen_visitor(*this, client_rect, event_data.type, event_data.pt, &last_pressed_widget_);
+		TouchScreenPressVisitor touch_screen_visitor(*this, client_rect, event_data.type, event_data.pt, &last_pressed_widget_, last_pressed_widget_pos_, last_pressed_widget_size_);
 		visit_all_widgets(touch_screen_visitor);
 	}
 
