@@ -150,7 +150,7 @@ public:
 	virtual void fill_rect(const Rect &rect, const Color &color) = 0;
 	virtual void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) = 0;
 
-	void set_offset(const Point offset) { offset_ = offset; }
+	void set_offset(const Point &offset) { offset_ = offset; }
 	void draw_rect(const Rect &rect, int16_t width, const Color &color);
 	void draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
 	void draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
