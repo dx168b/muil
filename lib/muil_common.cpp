@@ -36,6 +36,7 @@ struct PaintData
 	Display          &display;
 	const FontInfo   *font;
 	const FormColors *colors;
+	Size             widget_size;
 
 	PaintData(Display &display, const FontInfo *font, const FormColors *colors) :
 		display(display),
@@ -136,7 +137,8 @@ public:
 		{
 			Point widget_pos = pos.moved(client_rect_.x1, client_rect_.y1);
 			paint_data_.display.set_offset(widget_pos);
-			widget.paint(paint_data_, size);
+			paint_data_.widget_size = size;
+			widget.paint(paint_data_);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
 	}
@@ -199,16 +201,16 @@ void Widget::refresh()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Label::paint(PaintData &paint_data, const Size &size)
+void Label::paint(PaintData &paint_data)
 {
 	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Indicator::paint(PaintData &paint_data, const Size &size)
+void Indicator::paint(PaintData &paint_data)
 {
-	Rect rect(0, 0, size.width, size.height);
+	Rect rect(0, 0, paint_data.widget_size.width, paint_data.widget_size.height);
 	paint_data.display.fill_rect(rect, Color::white());
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, Color::black());
 }
@@ -253,9 +255,9 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Button::paint(PaintData &paint_data, const Size &size)
+void Button::paint(PaintData &paint_data)
 {
-	Rect rect(0, 0, size.width, size.height);
+	Rect rect(0, 0, paint_data.widget_size.width, paint_data.widget_size.height);
 
 	paint_button(paint_data, rect, flags_.get(FLAG_PRESSED), true);
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
@@ -263,8 +265,9 @@ void Button::paint(PaintData &paint_data, const Size &size)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CheckBox::paint(PaintData &paint_data, const Size &size)
+void CheckBox::paint(PaintData &paint_data)
 {
+	const Size &size = paint_data.widget_size;
 	Rect check_rect(0, 0, size.height, size.height);
 	paint_button(paint_data, check_rect, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
@@ -297,9 +300,11 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpDownWidget::paint(PaintData &paint_data, const Size &size)
+void UpDownWidget::paint(PaintData &paint_data)
 {
 	Rect up_btn_rect, down_btn_rect;
+
+	const Size &size = paint_data.widget_size;
 
 	get_buttons_rects(size, paint_data.display, up_btn_rect, down_btn_rect);
 
@@ -365,8 +370,9 @@ void UpDownWidget::set_value(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Choice::paint(PaintData &paint_data, const Size &size)
+void Choice::paint(PaintData &paint_data)
 {
+	const Size &size = paint_data.widget_size;
 	Rect btn_rect = Rect(size.width-size.height, 0, size.width, size.height);
 	Rect data_rect = Rect(0, 0, btn_rect.x1, size.height);
 
