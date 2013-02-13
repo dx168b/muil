@@ -125,7 +125,8 @@ static void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int
 class WidgetsPaintVisitor : public IWidgetVisitor
 {
 public:
-	WidgetsPaintVisitor(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) :
+	WidgetsPaintVisitor(WidgetsForm &form, PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) :
+		form_(form),
 		paint_data_(paint_data),
 		client_rect_(client_rect),
 		force_repaint_all_widgets_(force_repaint_all_widgets) {}
@@ -136,12 +137,13 @@ public:
 		{
 			Point widget_pos = pos.moved(client_rect_.x1, client_rect_.y1);
 			paint_data_.display.set_offset(widget_pos);
-			widget.paint(paint_data_, size);
+			widget.paint(form_, paint_data_, size);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
 	}
 
 private:
+	WidgetsForm &form_;
 	PaintData &paint_data_;
 	const Rect &client_rect_;
 	const bool force_repaint_all_widgets_;
@@ -199,14 +201,14 @@ void Widget::refresh()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Label::paint(PaintData &paint_data, const Size &size)
+void Label::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
 {
 	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Indicator::paint(PaintData &paint_data, const Size &size)
+void Indicator::paint(WidgetsForm &form, PaintData &paint_data, const Size &size)
 {
 	Rect rect(0, 0, size.width, size.height);
 	paint_data.display.fill_rect(rect, Color::white());
@@ -253,9 +255,9 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Button::paint(PaintData &paint_data, const Size &size)
+void Button::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
 {
-	Rect rect(0, 0, size.width, size.height);
+	Rect rect(0, 0, widget_size.width, widget_size.height);
 
 	paint_button(paint_data, rect, flags_.get(FLAG_PRESSED), true);
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
@@ -263,13 +265,13 @@ void Button::paint(PaintData &paint_data, const Size &size)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CheckBox::paint(PaintData &paint_data, const Size &size)
+void CheckBox::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
 {
-	Rect check_rect(0, 0, size.height, size.height);
+	Rect check_rect(0, 0, widget_size.height, widget_size.height);
 	paint_button(paint_data, check_rect, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
-	Rect tect_rect(size.height+size.height/6, 0, size.width, size.height);
+	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
 	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, Color::black());
 }
 
@@ -297,13 +299,13 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpDownWidget::paint(PaintData &paint_data, const Size &size)
+void UpDownWidget::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
 {
 	Rect up_btn_rect, down_btn_rect;
 
-	get_buttons_rects(size, paint_data.display, up_btn_rect, down_btn_rect);
+	get_buttons_rects(widget_size, paint_data.display, up_btn_rect, down_btn_rect);
 
-	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, size.height);
+	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, widget_size.height);
 	paint_data.display.fill_rect(value_rect, Color::white());
 
 	paint_button(paint_data, up_btn_rect.inflated(1), flags_.get(FLAG_UP_BTN_PRESSED), false);
@@ -365,10 +367,10 @@ void UpDownWidget::set_value(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Choice::paint(PaintData &paint_data, const Size &size)
+void Choice::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
 {
-	Rect btn_rect = Rect(size.width-size.height, 0, size.width, size.height);
-	Rect data_rect = Rect(0, 0, btn_rect.x1, size.height);
+	Rect btn_rect = Rect(widget_size.width-widget_size.height, 0, widget_size.width, widget_size.height);
+	Rect data_rect = Rect(0, 0, btn_rect.x1, widget_size.height);
 
 	paint_data.display.fill_rect(data_rect, paint_data.colors->ctrl_bg);
 	int selection = get_selection();
@@ -537,7 +539,7 @@ void WidgetsForm::paint_client_area(PaintData &paint_data, const Rect &client_re
 		paint_data.display.set_offset(Point(0, 0));
 		paint_data.display.fill_rect(client_rect, colors_->form_bg);
 	}
-	WidgetsPaintVisitor paint_visitor(paint_data, client_rect, force_repaint_all_widgets);
+	WidgetsPaintVisitor paint_visitor(*this, paint_data, client_rect, force_repaint_all_widgets);
 	visit_all_widgets(paint_visitor);
 }
 
