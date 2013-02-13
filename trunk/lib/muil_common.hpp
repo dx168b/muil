@@ -65,7 +65,7 @@ enum ModalResult
 class Widget
 {
 public:
-	virtual void paint(PaintData &paint_data) = 0;
+	virtual void paint(PaintData &paint_data, const Size &size) = 0;
 
 	virtual void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) {}
 
@@ -86,7 +86,7 @@ class Label : public Widget
 public:
 	Label(const wchar_t *text) : text_(text) {}
 
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 
 private:
 	const wchar_t *text_;
@@ -99,7 +99,7 @@ class Indicator : public Widget
 public:
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	virtual const wchar_t* get_text() = 0;
 };
 
@@ -147,7 +147,7 @@ public:
 	static const uint32_t FLAG_DEFAULT = 0x10000;
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form) {}
 
 private:
@@ -167,7 +167,7 @@ public:
 	static const uint32_t FLAG_CHECKED = 0x10000;
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form);
 
 private:
@@ -190,7 +190,7 @@ public:
 	void set_value(int value);
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
 
 	static const uint32_t FLAG_UP_BTN_PRESSED = 0x10000;
@@ -227,7 +227,7 @@ public:
 	void set_selection(int selection);
 
 protected:
-	void paint(PaintData &paint_data);
+	void paint(PaintData &paint_data, const Size &size);
 	void pressed(Form *form);
 
 private:
