@@ -73,9 +73,8 @@ static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 	return true;
 }
 
-static void paint_button(PaintData &paint_data, const Rect &rect, bool pressed, bool shadow, bool vert_gradient = true)
+static void paint_button(PaintData &paint_data, const Rect &rect, const Color &bg_color, bool pressed, bool shadow, bool vert_gradient = true)
 {
-	const Color bg_color = paint_data.colors->btn_bg;
 	const Color bg_color1 = bg_color.light(pressed ? -32 : 0);
 	const Color bg_color2 = bg_color.light(pressed ? 32 : 64);
 
@@ -137,7 +136,9 @@ public:
 		{
 			Point widget_pos = pos.moved(client_rect_.x1, client_rect_.y1);
 			paint_data_.display.set_offset(widget_pos);
-			widget.paint(form_, paint_data_, size);
+			Color default_color = widget.get_default_color(*paint_data_.colors);
+			form_.get_widget_color(&widget, default_color);
+			widget.paint(form_, paint_data_, size, default_color);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
 	}
@@ -201,18 +202,28 @@ void Widget::refresh()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Label::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
+void Label::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
 	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
 }
 
+Color Label::get_default_color(const FormColors &colors) const
+{
+	return colors.form_bg;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Indicator::paint(WidgetsForm &form, PaintData &paint_data, const Size &size)
+void Indicator::paint(WidgetsForm &form, PaintData &paint_data, const Size &size, const Color &color)
 {
 	Rect rect(0, 0, size.width, size.height);
-	paint_data.display.fill_rect(rect, Color::white());
+	paint_data.display.fill_rect(rect, color);
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, Color::black());
+}
+
+Color Indicator::get_default_color(const FormColors &colors) const
+{
+	return Color::white();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,24 +266,33 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Button::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
+void Button::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
 	Rect rect(0, 0, widget_size.width, widget_size.height);
-
-	paint_button(paint_data, rect, flags_.get(FLAG_PRESSED), true);
+	paint_button(paint_data, rect, color, flags_.get(FLAG_PRESSED), true);
 	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
+}
+
+Color Button::get_default_color(const FormColors &colors) const
+{
+	return colors.btn_bg;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CheckBox::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
+void CheckBox::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
 	Rect check_rect(0, 0, widget_size.height, widget_size.height);
-	paint_button(paint_data, check_rect, flags_.get(FLAG_PRESSED), true);
+	paint_button(paint_data, check_rect, color, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
 	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, Color::black());
+}
+
+Color CheckBox::get_default_color(const FormColors &colors) const
+{
+	return colors.btn_bg;
 }
 
 void CheckBox::pressed(Form *form)
@@ -299,17 +319,17 @@ void CheckBox::paint_check(PaintData &paint_data, const Rect &rect)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UpDownWidget::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
+void UpDownWidget::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
 	Rect up_btn_rect, down_btn_rect;
 
 	get_buttons_rects(widget_size, paint_data.display, up_btn_rect, down_btn_rect);
 
 	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, widget_size.height);
-	paint_data.display.fill_rect(value_rect, Color::white());
+	paint_data.display.fill_rect(value_rect, color);
 
-	paint_button(paint_data, up_btn_rect.inflated(1), flags_.get(FLAG_UP_BTN_PRESSED), false);
-	paint_button(paint_data, down_btn_rect.inflated(1), flags_.get(FLAG_DOWN_BTN_PRESSED), false);
+	paint_button(paint_data, up_btn_rect.inflated(1), paint_data.colors->btn_bg, flags_.get(FLAG_UP_BTN_PRESSED), false);
+	paint_button(paint_data, down_btn_rect.inflated(1), paint_data.colors->btn_bg, flags_.get(FLAG_DOWN_BTN_PRESSED), false);
 
 	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 7;
 	paint_tirangle(paint_data, layer, up_btn_rect.x1, up_btn_rect.x2, up_btn_rect.y1, up_btn_rect.y2, true);
@@ -318,6 +338,11 @@ void UpDownWidget::paint(WidgetsForm &form, PaintData &paint_data, const Size &w
 	wchar_t text_buf[10] = {0};
 	print_number(text_buf, 10, value_, dec_pt_);
 	paint_data.display.paint_text_in_rect(value_rect, HA_CENTER, text_buf, paint_data.font, Color::black());
+}
+
+Color UpDownWidget::get_default_color(const FormColors &colors) const
+{
+	return Color::white();
 }
 
 void UpDownWidget::get_buttons_rects(const Size &size, Display &display, Rect &up_btn_rect, Rect &down_btn_rect)
@@ -367,12 +392,12 @@ void UpDownWidget::set_value(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Choice::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size)
+void Choice::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
 	Rect btn_rect = Rect(widget_size.width-widget_size.height, 0, widget_size.width, widget_size.height);
 	Rect data_rect = Rect(0, 0, btn_rect.x1, widget_size.height);
 
-	paint_data.display.fill_rect(data_rect, paint_data.colors->ctrl_bg);
+	paint_data.display.fill_rect(data_rect, color);
 	int selection = get_selection();
 	if (selection != -1)
 	{
@@ -385,9 +410,14 @@ void Choice::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_
 		);
 	}
 
-	paint_button(paint_data, btn_rect.inflated(1), flags_.get(FLAG_PRESSED), true);
+	paint_button(paint_data, btn_rect.inflated(1), paint_data.colors->btn_bg, flags_.get(FLAG_PRESSED), true);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
 	paint_tirangle(paint_data, layer, btn_rect.x1, btn_rect.x2, btn_rect.y1, btn_rect.y2, false);
+}
+
+Color Choice::get_default_color(const FormColors &colors) const
+{
+	return colors.ctrl_bg;
 }
 
 void Choice::pressed(Form *form)
@@ -667,7 +697,7 @@ void StringSelectorForm::paint_client_area(
 			Rect(data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2),
 			sb_color
 		);
-		paint_button(paint_data, data.scr_bar_handle, scroll_drag_start_y_ != -1, false, false);
+		paint_button(paint_data, data.scr_bar_handle, paint_data.colors->btn_bg, scroll_drag_start_y_ != -1, false, false);
 	}
 }
 

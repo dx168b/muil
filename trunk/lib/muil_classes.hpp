@@ -63,6 +63,7 @@ struct Color
 	static Color white() { return Color(255, 255, 255); }
 	static Color blue() { return Color(0, 0, 255); }
 	static Color red() { return Color(255, 0, 0); }
+	static Color green() { return Color(0, 255, 0); }
 
 	Color light(int value) const;
 	static Color between(const Color &color1, const Color &color2, int16_t value, int16_t max);

@@ -54,6 +54,8 @@ enum EventType
 	EVENT_TOUCHSCREEN_MOVE,
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum ModalResult
 {
 	MR_NONE,
@@ -63,16 +65,34 @@ enum ModalResult
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct FormColors
+{
+	const Color caption;
+	const Color caption_text;
+	const Color form_bg;
+	const Color form_text;
+	const Color btn_bg;
+	const Color ctrl_bg;
+	const Color ctrl_border;
+	const Color ctrl_sign;
+	const Color selection_bg;
+	const Color selection_text;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class Widget
 {
 public:
-	virtual void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size) = 0;
+	virtual void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color) = 0;
+	virtual Color get_default_color(const FormColors &colors) const = 0;
 
 	virtual void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) {}
 
 	void refresh();
 
 	const static uint32_t FLAG_INVALID = 0x0001;
+
 
 protected:
 	Flags<uint32_t> flags_;
@@ -87,7 +107,8 @@ class Label : public Widget
 public:
 	Label(const wchar_t *text) : text_(text) {}
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
 
 private:
 	const wchar_t *text_;
@@ -98,9 +119,10 @@ private:
 class Indicator : public Widget
 {
 public:
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
 
 protected:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
 	virtual const wchar_t* get_text() = 0;
 };
 
@@ -147,8 +169,10 @@ public:
 
 	static const uint32_t FLAG_DEFAULT = 0x10000;
 
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
+
 protected:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
 	void pressed(Form *form) {}
 
 private:
@@ -167,8 +191,10 @@ public:
 
 	static const uint32_t FLAG_CHECKED = 0x10000;
 
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
+
 protected:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
 	void pressed(Form *form);
 
 private:
@@ -190,8 +216,10 @@ public:
 
 	void set_value(int value);
 
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
+
 protected:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
 	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
 
 	static const uint32_t FLAG_UP_BTN_PRESSED = 0x10000;
@@ -227,8 +255,10 @@ public:
 	int get_selection() const { return selection_; }
 	void set_selection(int selection);
 
+	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	Color get_default_color(const FormColors &colors) const;
+
 protected:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size);
 	void pressed(Form *form);
 
 private:
@@ -258,22 +288,6 @@ class IWidgetVisitor
 {
 public:
 	virtual void visit(Widget &widget, const Point &pos, const Size &size = Size(-1, -1)) = 0;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct FormColors
-{
-	const Color caption;
-	const Color caption_text;
-	const Color form_bg;
-	const Color form_text;
-	const Color btn_bg;
-	const Color ctrl_bg;
-	const Color ctrl_border;
-	const Color ctrl_sign;
-	const Color selection_bg;
-	const Color selection_text;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,10 +343,11 @@ public:
 
 	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
 
+	virtual void get_widget_color(const Widget *widget, Color &color) {}
+
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
 	virtual void widget_event(EventType type, const Widget *widget) {}
-	virtual void get_widget_color(const Widget *widget, Color &color) {}
 
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 
