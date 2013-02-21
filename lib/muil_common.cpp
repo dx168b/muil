@@ -359,7 +359,7 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size
 	Rect up_btn_rect, down_btn_rect;
 	get_buttons_rects(size, *Application::get_instance()->get_display(), up_btn_rect, down_btn_rect);
 	bool hit_up_btn = up_btn_rect.contains(pt);
-	bool hit_down_btn = down_btn_rect.contains(pt);
+	bool hit_down_btn = down_btn_rect.contains(pt) && !hit_up_btn;
 
 	switch (type)
 	{
