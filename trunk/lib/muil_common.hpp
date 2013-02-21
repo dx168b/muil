@@ -147,6 +147,20 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class TextIndicator : public Indicator
+{
+public:
+	TextIndicator(const wchar_t* text) : text_(text) {}
+
+protected:
+	const wchar_t* get_text() { return text_; }
+
+private:
+	const wchar_t* text_;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class PressibleWidget : public Widget
 {
 public:
@@ -343,11 +357,10 @@ public:
 
 	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
 
-	virtual void get_widget_color(const Widget *widget, Color &color) {}
-
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
 	virtual void widget_event(EventType type, const Widget *widget) {}
+	virtual void get_widget_color(const Widget *widget, Color &color) {}
 
 	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 
@@ -357,6 +370,7 @@ private:
 	Size last_pressed_widget_size_;
 
 	friend class TouchScreenPressVisitor; // for calling widget_event function
+	friend class WidgetsPaintVisitor; // for calling get_widget_color
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
