@@ -119,6 +119,22 @@ static void paint_tirangle(PaintData &paint_data, int16_t layer, int16_t x1, int
 	paint_data.display.fill_triangle(Point(x1, bottom), Point(mx, top), Point(x2, bottom), paint_data.colors->ctrl_sign);
 }
 
+static Point translate_rel_coord(uint8_t x, uint8_t y, const Rect &client_rect)
+{
+	return Point(
+		x * client_rect.width() / 100 + client_rect.x1,
+		y * client_rect.height() / 100 + client_rect.y1
+	);
+}
+
+static Size translate_rel_size(uint8_t width, uint8_t height, const Rect &client_rect)
+{
+	return Size(
+		width * client_rect.width() / 100,
+		height * client_rect.height() / 100
+	);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class WidgetsPaintVisitor : public IWidgetVisitor
@@ -130,11 +146,12 @@ public:
 		client_rect_(client_rect),
 		force_repaint_all_widgets_(force_repaint_all_widgets) {}
 
-	void visit(Widget &widget, const Point &pos, const Size &size)
+	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 	{
 		if (widget.flags_.get(Widget::FLAG_INVALID) || force_repaint_all_widgets_)
 		{
-			Point widget_pos = pos.moved(client_rect_.x1, client_rect_.y1);
+			Size size = translate_rel_size(width, height, client_rect_);
+			Point widget_pos = translate_rel_coord(x, y, client_rect_);
 			paint_data_.display.set_offset(widget_pos);
 			Color default_color = widget.get_default_color(*paint_data_.colors);
 			form_.get_widget_color(&widget, default_color);
@@ -155,7 +172,15 @@ private:
 class TouchScreenPressVisitor : public IWidgetVisitor
 {
 public:
-	TouchScreenPressVisitor(WidgetsForm &form, const Rect &client_rect, EventType type, const Point pt, Widget** last_pressed_widget, Point &last_pressed_widget_pos, Size &last_pressed_widget_size) :
+	TouchScreenPressVisitor(
+		WidgetsForm& form,
+		const Rect&  client_rect,
+		EventType    type,
+		const Point& pt,
+		Widget**     last_pressed_widget,
+		Point&       last_pressed_widget_pos,
+		Size&        last_pressed_widget_size
+	) :
 		form_(form),
 		client_rect_(client_rect),
 		type_(type),
@@ -164,9 +189,11 @@ public:
 		last_pressed_widget_pos_(last_pressed_widget_pos),
 		last_pressed_widget_size_(last_pressed_widget_size) {}
 
-	void visit(Widget &widget, const Point &pos, const Size &size)
+	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 	{
-		Rect rect(pos.moved(client_rect_.x1, client_rect_.y1), size);
+		Point pos = translate_rel_coord(x, y, client_rect_);
+		Size size = translate_rel_size(width, height, client_rect_);
+		Rect rect(pos, size);
 		if (rect.contains(pt_))
 		{
 			const Point widget_pt = Point(pt_.x-rect.x1, pt_.y-rect.y1);
@@ -189,7 +216,6 @@ private:
 	Widget **last_pressed_widget_;
 	Point &last_pressed_widget_pos_;
 	Size &last_pressed_widget_size_;
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -453,9 +479,9 @@ const wchar_t* StringsChoice::get_item(size_t index)
 static const FormColors default_colors = {
 	Color::white(),
 	Color::black(),
-	Color(220, 220, 220),
+	Color(210, 210, 210),
 	Color::black(),
-	Color(150, 180, 180),
+	Color(200, 200, 200),
 	Color::white(),
 	Color::black(),
 	Color::black(),
@@ -545,8 +571,7 @@ void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data
 	{
 		if (last_pressed_widget_)
 		{
-			const Point widget_pos = last_pressed_widget_pos_.moved(client_rect.x1, client_rect.y1);
-			const Point up_rel_pos = event_data.pt.moved(-widget_pos.x, -widget_pos.y);
+			const Point up_rel_pos = event_data.pt.moved(-last_pressed_widget_pos_.x, -last_pressed_widget_pos_.y);
 			last_pressed_widget_->touch_screen_event(EVENT_TOUCHSCREEN_UP, up_rel_pos, last_pressed_widget_size_, this);
 			const Rect widget_rect(Point(0, 0), last_pressed_widget_size_);
 			if (widget_rect.contains(up_rel_pos)) widget_event(EVENT_TOUCHSCREEN_UP, last_pressed_widget_);
