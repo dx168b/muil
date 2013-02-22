@@ -481,7 +481,7 @@ static const FormColors default_colors = {
 	Color::black(),
 	Color(210, 210, 210),
 	Color::black(),
-	Color(200, 200, 200),
+	Color(180, 200, 255),
 	Color::white(),
 	Color::black(),
 	Color::black(),
