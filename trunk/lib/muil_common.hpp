@@ -301,7 +301,7 @@ private:
 class IWidgetVisitor
 {
 public:
-	virtual void visit(Widget &widget, const Point &pos, const Size &size = Size(-1, -1)) = 0;
+	virtual void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width = 0, uint8_t height = 0) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
