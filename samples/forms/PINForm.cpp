@@ -16,8 +16,8 @@ PINForm::PINForm(const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t p
 	btn_esc_(L"Esc", false),
 	btn0_   (L"0",   false),
 	btn_ent_(L"Ent", false),
-	pin_text_buffer_(pin_text_buffer),
-	pin_len_(pin_len)
+	pin_len_(pin_len),
+	pin_text_buffer_(pin_text_buffer)
 {
 	pin_text_buffer_[0] = 0;
 }
