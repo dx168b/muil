@@ -85,7 +85,7 @@ void PINForm::get_widget_color(const muil::Widget *widget, muil::Color &color)
 {
 	if (widget == &btn_ent_) color = muil::Color(160, 255, 160);
 	else if (widget == &btn_esc_) color = muil::Color(255, 160, 160);
-	else if (widget == &btn_clr_) color = muil::Color(200, 200, 200);
+	else if (widget == &btn_clr_) color = muil::Color(180, 180, 180);
 }
 
 char PINForm::get_char_by_btn(const muil::Widget &widget) const
