@@ -322,6 +322,11 @@ public:
 		modal_result_ = modal_result;
 	}
 
+	ModalResult get_modal_result() const
+	{
+		return modal_result_;
+	}
+
 	virtual void handle_touch_screen_event(FormTouchScreenEventData &event_data) = 0;
 
 	void paint(Display &display, bool widgets_only, bool force_repaint_all_widgets);
