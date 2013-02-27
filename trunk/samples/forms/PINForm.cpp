@@ -3,19 +3,6 @@
 PINForm::PINForm(const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t pin_len) :
 	muil::WidgetsForm(L"Enter the PIN", font),
 	pin_    (pin_text_buffer),
-	btn_clr_(L"Clear", false),
-	btn1_   (L"1",   false),
-	btn2_   (L"2",   false),
-	btn3_   (L"3",   false),
-	btn4_   (L"4",   false),
-	btn5_   (L"5",   false),
-	btn6_   (L"6",   false),
-	btn7_   (L"7",   false),
-	btn8_   (L"8",   false),
-	btn9_   (L"9",   false),
-	btn_esc_(L"Esc", false),
-	btn0_   (L"0",   false),
-	btn_ent_(L"Ent", false),
 	pin_len_(pin_len),
 	pin_text_buffer_(pin_text_buffer)
 {
@@ -37,19 +24,19 @@ void PINForm::visit_all_widgets(muil::IWidgetVisitor &visitor)
 	const int y4 = 79;
 
 	visitor.visit(pin_,      x1,  y0, 50,   15);
-	visitor.visit(btn_clr_,  60,  y0, 35,   15);
-	visitor.visit(btn1_,     x1,  y1, btw,  bth);
-	visitor.visit(btn2_,     x2,  y1, btw,  bth);
-	visitor.visit(btn3_,     x3,  y1, btw,  bth);
-	visitor.visit(btn4_,     x1,  y2, btw,  bth);
-	visitor.visit(btn5_,     x2,  y2, btw,  bth);
-	visitor.visit(btn6_,     x3,  y2, btw,  bth);
-	visitor.visit(btn7_,     x1,  y3, btw,  bth);
-	visitor.visit(btn8_,     x2,  y3, btw,  bth);
-	visitor.visit(btn9_,     x3,  y3, btw,  bth);
-	visitor.visit(btn_esc_,  x1,  y4, btw,  bth);
-	visitor.visit(btn0_,     x2,  y4, btw,  bth);
-	visitor.visit(btn_ent_,  x3,  y4, btw,  bth);
+	visitor.visit(btn_clr_,  60,  y0, 35,   15,  L"Clear");
+	visitor.visit(btn1_,     x1,  y1, btw,  bth, L"1");
+	visitor.visit(btn2_,     x2,  y1, btw,  bth, L"2");
+	visitor.visit(btn3_,     x3,  y1, btw,  bth, L"3");
+	visitor.visit(btn4_,     x1,  y2, btw,  bth, L"4");
+	visitor.visit(btn5_,     x2,  y2, btw,  bth, L"5");
+	visitor.visit(btn6_,     x3,  y2, btw,  bth, L"6");
+	visitor.visit(btn7_,     x1,  y3, btw,  bth, L"7");
+	visitor.visit(btn8_,     x2,  y3, btw,  bth, L"8");
+	visitor.visit(btn9_,     x3,  y3, btw,  bth, L"9");
+	visitor.visit(btn_esc_,  x1,  y4, btw,  bth, L"Esc");
+	visitor.visit(btn0_,     x2,  y4, btw,  bth, L"0");
+	visitor.visit(btn_ent_,  x3,  y4, btw,  bth, L"OK");
 }
 
 void PINForm::widget_event(muil::EventType type, const muil::Widget *widget)

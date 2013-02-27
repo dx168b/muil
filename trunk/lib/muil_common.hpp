@@ -38,11 +38,12 @@
 namespace muil {
 
 // fwd.
-struct PaintData;
 class Form;
 class WidgetsForm;
 struct FormTouchScreenEventData;
 struct StringSelectorFormData;
+struct FormPaintData;
+struct WidgetPaintData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -84,7 +85,7 @@ struct FormColors
 class Widget
 {
 public:
-	virtual void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color) = 0;
+	virtual void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) = 0;
 	virtual Color get_default_color(const FormColors &colors) const = 0;
 
 	virtual void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) {}
@@ -105,20 +106,17 @@ protected:
 class Label : public Widget
 {
 public:
-	Label(const wchar_t *text, uint32_t align_flags = FLAG_ALIGN_LEFT) : text_(text)
+	Label(uint32_t align_flags = FLAG_ALIGN_LEFT)
 	{
 		flags_.on(align_flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER));
 	}
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 	static const uint32_t FLAG_ALIGN_LEFT   = 0x10000;
 	static const uint32_t FLAG_ALIGN_RIGHT  = 0x20000;
 	static const uint32_t FLAG_ALIGN_CENTER = 0x40000;
-
-private:
-	const wchar_t *text_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +124,7 @@ private:
 class Indicator : public Widget
 {
 public:
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 protected:
@@ -183,21 +181,18 @@ protected:
 class Button : public PressibleWidget
 {
 public:
-	Button(const wchar_t *text, bool default_btn = false) : text_(text)
+	Button(bool default_btn = false)
 	{
 		flags_.set(FLAG_DEFAULT, default_btn);
 	}
 
 	static const uint32_t FLAG_DEFAULT = 0x10000;
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 protected:
 	void pressed(Form *form) {}
-
-private:
-	const wchar_t *text_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,23 +200,21 @@ private:
 class CheckBox : public PressibleWidget
 {
 public:
-	CheckBox(const wchar_t *text, bool checked = false) : text_(text)
+	CheckBox(bool checked = false)
 	{
 		flags_.set(FLAG_CHECKED, checked);
 	}
 
 	static const uint32_t FLAG_CHECKED = 0x10000;
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 protected:
 	void pressed(Form *form);
 
 private:
-	const wchar_t *text_;
-
-	static void paint_check(PaintData &paint_data, const Rect &rect);
+	static void paint_check(FormPaintData &paint_data, const Rect &rect);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +230,7 @@ public:
 
 	void set_value(int value);
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 protected:
@@ -276,7 +269,7 @@ public:
 	int get_selection() const { return selection_; }
 	void set_selection(int selection);
 
-	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const;
 
 protected:
@@ -301,14 +294,6 @@ public:
 
 private:
 	const wchar_t** items_;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class IWidgetVisitor
-{
-public:
-	virtual void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,7 +324,7 @@ public:
 	void paint(Display &display, bool widgets_only, bool force_repaint_all_widgets);
 
 protected:
-	virtual void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) = 0;
+	virtual void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) = 0;
 
 	virtual void touch_screen_event(FormTouchScreenEventData &event_data) {}
 	virtual void before_show(const Display &display) {}
@@ -355,7 +340,14 @@ private:
 	const wchar_t *caption_;
 	const FontInfo *font_;
 	volatile ModalResult modal_result_;
+};
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class IWidgetVisitor
+{
+public:
+	virtual void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height, const wchar_t *text = NULL) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -374,7 +366,7 @@ protected:
 	virtual void widget_event(EventType type, const Widget *widget) {}
 	virtual void get_widget_color(const Widget *widget, Color &color) {}
 
-	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
+	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 
 private:
 	Widget *last_pressed_widget_;
@@ -402,10 +394,10 @@ public:
 	int get_selection() const { return selection_; }
 
 protected:
-	void paint_client_area(PaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
+	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
 	void before_show(const Display &display);
 
-	int16_t paint_item(int item_index, PaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
+	int16_t paint_item(int item_index, FormPaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
 
 private:
 	IStringItemsProvider *items_provider_;
