@@ -230,7 +230,12 @@ void Widget::refresh()
 
 void Label::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
-	paint_data.display.paint_text(0, 0, text_, paint_data.font, Color::black());
+	HorizAlign horiz_align = HA_LEFT;
+	if (flags_.get(FLAG_ALIGN_RIGHT)) horiz_align = HA_RIGHT;
+	else if (flags_.get(FLAG_ALIGN_CENTER)) horiz_align = HA_CENTER;
+
+	Rect rect(0, 0, widget_size.width, widget_size.height);
+	paint_data.display.paint_text_in_rect(rect, horiz_align, text_, paint_data.font, paint_data.colors->form_text);
 }
 
 Color Label::get_default_color(const FormColors &colors) const
@@ -240,11 +245,11 @@ Color Label::get_default_color(const FormColors &colors) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Indicator::paint(WidgetsForm &form, PaintData &paint_data, const Size &size, const Color &color)
+void Indicator::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color)
 {
-	Rect rect(0, 0, size.width, size.height);
+	Rect rect(0, 0, widget_size.width, widget_size.height);
 	paint_data.display.fill_rect(rect, color);
-	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, Color::black());
+	paint_data.display.paint_text_in_rect(rect, HA_CENTER, get_text(), paint_data.font, paint_data.colors->form_text);
 }
 
 Color Indicator::get_default_color(const FormColors &colors) const
@@ -296,7 +301,7 @@ void Button::paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_
 {
 	Rect rect(0, 0, widget_size.width, widget_size.height);
 	paint_button(paint_data, rect, color, flags_.get(FLAG_PRESSED), true);
-	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, Color::black());
+	paint_data.display.paint_text_in_rect(rect, HA_CENTER, text_, paint_data.font, paint_data.colors->form_text);
 }
 
 Color Button::get_default_color(const FormColors &colors) const
@@ -313,7 +318,7 @@ void CheckBox::paint(WidgetsForm &form, PaintData &paint_data, const Size &widge
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
-	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, Color::black());
+	paint_data.display.paint_text_in_rect(tect_rect, HA_LEFT, text_, paint_data.font, paint_data.colors->form_text);
 }
 
 Color CheckBox::get_default_color(const FormColors &colors) const
@@ -363,7 +368,7 @@ void UpDownWidget::paint(WidgetsForm &form, PaintData &paint_data, const Size &w
 
 	wchar_t text_buf[10] = {0};
 	print_number(text_buf, 10, value_, dec_pt_);
-	paint_data.display.paint_text_in_rect(value_rect, HA_CENTER, text_buf, paint_data.font, Color::black());
+	paint_data.display.paint_text_in_rect(value_rect, HA_CENTER, text_buf, paint_data.font, paint_data.colors->form_text);
 }
 
 Color UpDownWidget::get_default_color(const FormColors &colors) const

@@ -105,10 +105,17 @@ protected:
 class Label : public Widget
 {
 public:
-	Label(const wchar_t *text) : text_(text) {}
+	Label(const wchar_t *text, uint32_t align_flags = FLAG_ALIGN_LEFT) : text_(text)
+	{
+		flags_.on(align_flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER));
+	}
 
 	void paint(WidgetsForm &form, PaintData &paint_data, const Size &widget_size, const Color &color);
 	Color get_default_color(const FormColors &colors) const;
+
+	static const uint32_t FLAG_ALIGN_LEFT   = 0x10000;
+	static const uint32_t FLAG_ALIGN_RIGHT  = 0x20000;
+	static const uint32_t FLAG_ALIGN_CENTER = 0x40000;
 
 private:
 	const wchar_t *text_;
@@ -301,7 +308,7 @@ private:
 class IWidgetVisitor
 {
 public:
-	virtual void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width = 0, uint8_t height = 0) = 0;
+	virtual void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
