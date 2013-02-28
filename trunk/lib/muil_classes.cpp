@@ -213,6 +213,8 @@ void Display::fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
 	int16_t cnt_y2 = dx2 / 2;
 	int16_t y2 = pt1.y;
 
+	int16_t scr_width = get_size().width;
+
 	for (int16_t x = pt1.x; x <= pt3.x; x++)
 	{
 		if (x == pt2.x)
@@ -227,7 +229,8 @@ void Display::fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
 			y1 = pt2.y;
 		}
 
-		fill_rect(Rect(x, min(y1, y2), x, max(y1, y2)), color);
+		if ((x >= 0) || (x < scr_width))
+			fill_rect(Rect(x, min(y1, y2), x, max(y1, y2)), color);
 
 		cnt_y1 -= dy1_abs;
 		if (cnt_y1 < 0)

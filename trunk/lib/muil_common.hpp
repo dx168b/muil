@@ -413,6 +413,23 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class DialogForm : public WidgetsForm
+{
+public:
+	DialogForm(const wchar_t *caption, const FontInfo *font) : WidgetsForm(caption, font) {}
+
+protected:
+	void visit_all_widgets(IWidgetVisitor &visitor);
+	void widget_event(muil::EventType type, const muil::Widget *widget);
+	void get_widget_color(const muil::Widget *widget, muil::Color &color);
+
+private:
+	Button btn_ok_;
+	Button btn_cancel_;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class Application
 {
 public:
