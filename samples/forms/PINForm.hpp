@@ -6,7 +6,7 @@
 class PINForm : public muil::WidgetsForm
 {
 public:
-	PINForm(const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t pin_len);
+	PINForm(const wchar_t *caption, const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t pin_len);
 
 protected:
 	void visit_all_widgets(muil::IWidgetVisitor &visitor);

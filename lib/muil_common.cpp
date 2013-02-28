@@ -799,6 +799,33 @@ void StringSelectorForm::get_form_data(const Display &display, StringSelectorFor
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void DialogForm::visit_all_widgets(IWidgetVisitor &visitor)
+{
+	visitor.visit(btn_ok_,      5, 85, 43, 12, L"OK"    );
+	visitor.visit(btn_cancel_, 52, 85, 43, 12, L"Cancel");
+}
+
+void DialogForm::widget_event(muil::EventType type, const muil::Widget *widget)
+{
+	if (type == muil::EVENT_TOUCHSCREEN_UP)
+	{
+		if (widget == &btn_ok_)
+			set_modal_result(muil::MR_OK);
+
+		else if (widget == &btn_cancel_)
+			set_modal_result(muil::MR_CANCEL);
+	}
+}
+
+void DialogForm::get_widget_color(const muil::Widget *widget, muil::Color &color)
+{
+	if (widget == &btn_ok_) color = muil::Color(160, 255, 160);
+	else if (widget == &btn_cancel_) color = muil::Color(255, 160, 160);
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Application* Application::inst_ = NULL;
 
 Application::Application() : active_form_(NULL)
