@@ -127,21 +127,18 @@ static void paint_button(
 static void paint_tirangle(
 	FormPaintData &paint_data,
 	int16_t       layer,
-	int16_t       x1,
-	int16_t       x2,
-	int16_t       y1,
-	int16_t       y2,
+	Rect          rect,
 	bool          up)
 {
-	x1 += layer;
-	x2 -= layer;
-	y1 += layer;
-	y2 -= layer;
-	int16_t mx = (x1 + x2) / 2;
-	int16_t top = up ? y1 : y2;
-	int16_t bottom = up ? y2 : y1;
+	rect.x1 += layer;
+	rect.x2 -= layer;
+	rect.y1 += layer;
+	rect.y2 -= layer;
+	int16_t mx = (rect.x1 + rect.x2) / 2;
+	int16_t top = up ? rect.y1 : rect.y2;
+	int16_t bottom = up ? rect.y2 : rect.y1;
 
-	paint_data.display.fill_triangle(Point(x1, bottom), Point(mx, top), Point(x2, bottom), paint_data.colors->ctrl_sign);
+	paint_data.display.fill_triangle(Point(rect.x1, bottom), Point(mx, top), Point(rect.x2, bottom), paint_data.colors->ctrl_sign);
 }
 
 static Point translate_rel_coord(uint8_t x, uint8_t y, const Rect &client_rect)
@@ -427,25 +424,9 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 
 	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 7;
 
-	paint_tirangle(
-		paint_data,
-		layer,
-		up_btn_rect.x1,
-		up_btn_rect.x2,
-		up_btn_rect.y1,
-		up_btn_rect.y2,
-		true
-	);
+	paint_tirangle(paint_data, layer, up_btn_rect, true);
 
-	paint_tirangle(
-		paint_data,
-		layer,
-		down_btn_rect.x1,
-		down_btn_rect.x2,
-		down_btn_rect.y1,
-		down_btn_rect.y2,
-		false
-	);
+	paint_tirangle(paint_data, layer, down_btn_rect, false);
 
 	wchar_t text_buf[10] = {0};
 	print_number(text_buf, 10, value_, dec_pt_);
@@ -538,7 +519,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 		true
 	);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
-	paint_tirangle(paint_data, layer, btn_rect.x1, btn_rect.x2, btn_rect.y1, btn_rect.y2, false);
+	paint_tirangle(paint_data, layer, btn_rect, false);
 }
 
 Color Choice::get_default_color(const FormColors &colors) const
