@@ -413,7 +413,8 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size
 
 	case EVENT_TOUCHSCREEN_REPEATED:
 		if (hit_up_btn) set_value(value_ + 1);
-		if (hit_down_btn) set_value(value_ - 1);
+		else if (hit_down_btn) set_value(value_ - 1);
+		else refresh();
 		} while (false);
 		break;
 
