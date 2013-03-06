@@ -821,7 +821,15 @@ void StringSelectorForm::paint_client_area(
 			Rect(data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2),
 			sb_color
 		);
-		paint_button(paint_data, data.scr_bar_handle, paint_data.colors->btn_bg, scroll_drag_start_y_ != -1, false, false);
+
+		paint_button(
+			paint_data,
+			data.scr_bar_handle,
+			paint_data.colors->btn_bg,
+			scroll_drag_start_y_ != -1,
+			false,
+			false
+		);
 	}
 }
 
@@ -846,7 +854,14 @@ int16_t StringSelectorForm::paint_item(
 
 	if (!is_selected) paint_data.display.fill_rect(item_rect, sel_color);
 	else paint_data.display.draw_vertical_gradient(item_rect, sel_color.light(64), sel_color);
-	paint_data.display.paint_text_in_rect(item_rect, HA_LEFT, items_provider_->get_item(item_index), get_font(), text_color);
+
+	paint_data.display.paint_text_in_rect(
+		item_rect,
+		HA_LEFT,
+		items_provider_->get_item(item_index),
+		get_font(),
+		text_color
+	);
 
 	return y2;
 }
