@@ -492,6 +492,20 @@ void UpDownWidget::set_value(int value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+size_t ArrayOfStrings::get_items_count() const
+{
+	size_t result = 0;
+	while (items_[result]) result++;
+	return result;
+}
+
+const wchar_t* ArrayOfStrings::get_item(size_t index) const
+{
+	return items_[index];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
@@ -505,7 +519,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 		paint_data.display.paint_text_in_rect(
 			data_rect,
 			HA_LEFT,
-			get_item(selection),
+			items_provider_.get_item(selection),
 			paint_data.font,
 			paint_data.colors->form_text
 		);
@@ -529,7 +543,7 @@ Color Choice::get_default_color(const FormColors &colors) const
 
 void Choice::pressed(Form *form)
 {
-	StringSelectorForm selector_form(caption_, form->get_font(), this, selection_);
+	StringSelectorForm selector_form(caption_, form->get_font(), &items_provider_, selection_);
 	selector_form.show_modal();
 	selection_ = selector_form.get_selection();
 }
@@ -539,20 +553,6 @@ void Choice::set_selection(int selection)
 	if (selection_ == selection) return;
 	selection_ = selection;
 	refresh();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-size_t StringsChoice::get_items_count()
-{
-	size_t result = 0;
-	while (items_[result]) result++;
-	return result;
-}
-
-const wchar_t* StringsChoice::get_item(size_t index)
-{
-	return items_[index];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

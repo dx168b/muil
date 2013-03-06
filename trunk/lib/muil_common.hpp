@@ -253,18 +253,33 @@ private:
 class IStringItemsProvider
 {
 public:
-	virtual size_t get_items_count() = 0;
-	virtual const wchar_t* get_item(size_t index) = 0;
+	virtual size_t get_items_count() const = 0;
+	virtual const wchar_t* get_item(size_t index) const = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Choice : public PressibleWidget, public IStringItemsProvider // TODO: IStringItemsProvider затолкать внутрь
+class ArrayOfStrings : public IStringItemsProvider
 {
 public:
-	Choice(const wchar_t *caption, int selection) :
-		selection_(selection),
-		caption_(caption) {}
+	ArrayOfStrings(const wchar_t** items) : items_(items) {}
+
+	size_t get_items_count() const;
+	const wchar_t* get_item(size_t index) const;
+
+private:
+	const wchar_t** items_;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Choice : public PressibleWidget
+{
+public:
+	Choice(const wchar_t *caption, const IStringItemsProvider &items_provider, int selection) :
+		caption_(caption),
+		items_provider_(items_provider),
+		selection_(selection) {}
 
 	int get_selection() const { return selection_; }
 	void set_selection(int selection);
@@ -276,24 +291,9 @@ protected:
 	void pressed(Form *form);
 
 private:
-	int selection_;
 	const wchar_t *caption_;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class StringsChoice : public Choice
-{
-public:
-	StringsChoice(const wchar_t *caption, const wchar_t** items, int sel_index) :
-		Choice(caption, sel_index),
-		items_(items) {}
-
-	size_t get_items_count();
-	const wchar_t* get_item(size_t index);
-
-private:
-	const wchar_t** items_;
+	const IStringItemsProvider &items_provider_;
+	int selection_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -382,7 +382,7 @@ private:
 class StringSelectorForm : public Form
 {
 public:
-	StringSelectorForm(const wchar_t *caption, const FontInfo *font, IStringItemsProvider *items_provider, int selection) :
+	StringSelectorForm(const wchar_t *caption, const FontInfo *font, const IStringItemsProvider *items_provider, int selection) :
 		Form(caption, font),
 		items_provider_(items_provider),
 		selection_(selection),
@@ -400,7 +400,7 @@ protected:
 	int16_t paint_item(int item_index, FormPaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
 
 private:
-	IStringItemsProvider *items_provider_;
+	const IStringItemsProvider *items_provider_;
 	int selection_;
 	int top_item_index_;
 	int16_t scroll_drag_start_y_;
