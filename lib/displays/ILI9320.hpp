@@ -75,9 +75,9 @@ uint16_t ILI9320DisplaySPIConnector<SPI, CSPin>::read_data()
 	SPI::template cs_low<CSPin>();
 	SPI::write(SPI_START | SPI_RD | SPI_DATA);
 	SPI::write(0);
-	uint16_t result = SPI::read(0) & 0xFF;
+	uint16_t result = SPI::write_and_read(0) & 0xFF;
 	result <<= 8;
-	result |= (SPI::read(0) & 0xFF);
+	result |= (SPI::write_and_read(0) & 0xFF);
 	SPI::template cs_high<CSPin>();
 	return result;
 }
@@ -149,9 +149,13 @@ void ILI9320Display<Connector, ResetPin>::init(void (*delay_ms)(uint16_t milliso
 		uint16_t value;
 	};
 
+	write_reg(0, 0);
+
+	uint16_t display_code = read_reg(0);
+	if (display_code != 0x9320) return;
+
 	static const RegValue values[] =
 	{
-		{ 0x00, 0x0000 },
 		{ 0x01, 0x0100 }, /* Driver Output Contral */
 
 		{ 0x02, 0x0700 }, /* LCD Driver Waveform Contral */
@@ -169,17 +173,6 @@ void ILI9320Display<Connector, ResetPin>::init(void (*delay_ms)(uint16_t milliso
 		{ 0x12, (1<<8)|(1<<4)|(0<<0) },                /* Power Control 3 */
 		{ 0x13, 0x0b00 },                              /* Power Control 4 */
 		{ 0x29, 0x0000 },                              /* Power Control 7 */
-
-/*		{0x0030, 0x0001}, // gamma curves
-		{0x0031, 0x0606},
-		{0x0032, 0x0304},
-		{0x0035, 0x0103},
-		{0x0036, 0x011D},
-		{0x0037, 0x0404},
-		{0x0038, 0x0404},
-		{0x0039, 0x0404},
-		{0x003C, 0x0700},
-		{0x003D, 0x0A1F}, */
 
 		{ 0x2b, (1<<14)|(1<<4) },
 		{ 0x50, 0 },      /* Set X Start */
