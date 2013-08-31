@@ -834,12 +834,12 @@ void StringSelectorForm::paint_client_area(
 }
 
 int16_t StringSelectorForm::paint_item(
-	int        item_index,
-	FormPaintData  &paint_data,
-	const Rect &client_rect,
-	int        items_count,
-	uint16_t   item_height,
-	uint16_t   scr_bar_width)
+	int            item_index,
+	FormPaintData& paint_data,
+	const Rect&    client_rect,
+	int            items_count,
+	uint16_t       item_height,
+	uint16_t       scr_bar_width)
 {
 	if (item_index < 0) return -1;
 	if (item_index >= items_count) return -1;

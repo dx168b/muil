@@ -168,12 +168,20 @@ private:
 	static const FontCharInfo* find_char_info(const FontInfo *font, wchar_t chr);
 };
 
+struct TouchScreenCalibrData
+{
+	Display &display;
+	const FontInfo *font;
+	const wchar_t *text;
+	DelayFun delay_ms;
+};
+
 class TouchScreen
 {
 public:
 	virtual bool is_pressed() = 0;
 	virtual Point get_pos() = 0;
-	virtual void calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms) {}
+	virtual void calibrate(TouchScreenCalibrData &data) {}
 };
 
 } // end "namespace muil"

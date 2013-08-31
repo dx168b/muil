@@ -38,7 +38,7 @@ class ADS7843TouchScreen : public TouchScreen
 public:
 	bool is_pressed();
 	Point get_pos();
-	void calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms);
+	void calibrate(TouchScreenCalibrData &data);
 
 private:
 	struct Matrix
@@ -94,10 +94,10 @@ Point ADS7843TouchScreen<SPI, CSPin, PressedPin>::get_pos()
 }
 
 template<class SPI, class CSPin, class PressedPin>
-void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(Display &display, const FontInfo *font, const wchar_t *text, DelayFun delay_ms)
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(TouchScreenCalibrData &data)
 {
 	const Color bg_color = Color::white();
-	const Size disp_size = display.get_size();
+	const Size disp_size = data.display.get_size();
 
 	Point display_points[3];
 	Point touchscreen_points[3];
@@ -105,23 +105,23 @@ void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(Display &display, con
 	display_points[1] = Point(disp_size.width/2, 9*disp_size.height/10);
 	display_points[2] = Point(9*disp_size.width/10, disp_size.height/2);
 
-	display.fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), bg_color);
+	data.display.fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), bg_color);
 
 	for (size_t i = 0; i < 3; i++)
 	{
 		for (;;)
 		{
-			display.paint_text(1, 1, text, font, Color::black());
-			paint_cross(display, display_points[i], Color::blue());
+			data.display.paint_text(1, 1, data.text, data.font, Color::black());
+			paint_cross(data.display, display_points[i], Color::blue());
 
 			while (is_pressed());
 			wait_for_press();
-			delay_ms(50);
-			paint_cross(display, display_points[i], Color::red());
+			data.delay_ms(50);
+			paint_cross(data.display, display_points[i], Color::red());
 			get_filtered_coords(touchscreen_points[i].x, touchscreen_points[i].y);
-			delay_ms(500);
+			data.delay_ms(500);
 			while (is_pressed()) {}
-			paint_cross(display, display_points[i], bg_color);
+			paint_cross(data.display, display_points[i], bg_color);
 
 			if ((touchscreen_points[i].x != -1) && (touchscreen_points[i].y != -1)) break;
 		}
@@ -149,7 +149,8 @@ int16_t ADS7843TouchScreen<SPI, CSPin, PressedPin>::read_coord(uint8_t cmd)
 {
 	SPI::template cs_low<CSPin>();
 	SPI::write(cmd);
-	uint32_t result = SPI::write_and_read(0) << 8;
+	uint32_t result = SPI::write_and_read(0);
+	result <<= 8;
 	result |= SPI::write_and_read(0);
 	SPI::template cs_high<CSPin>();
 	result >>= 3;

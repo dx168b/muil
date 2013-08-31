@@ -74,9 +74,13 @@ class EmptyCSPin
 public:
 	static void On() {}
 	static void Off() {}
+	static void Mode(...) {}
 };
 
 template <
+	typename DataType,
+	SPI_CPHA CPHA,
+	SPI_CPOL CPOL,
 	unsigned Delay,
 	typename MOSIPin,
 	typename MISOPin,
@@ -86,57 +90,80 @@ template <
 class SoftwareSPI
 {
 public:
-	static void init(uint8_t bits_count, SPI_CSMode cs, SPI_CPHA cpha, SPI_CPOL cpol);
-	static uint16_t write_and_read(uint16_t value);
-	static void write(uint16_t value);
-	template <typename SoftCSPin> static void cs_high() { SoftCSPin::On(); }
-	template <typename SoftCSPin> static void cs_low() { SoftCSPin::Off(); }
+	static void init()
+	{
+		MOSIPin::Mode(OUTPUT);
+		MOSIPin::Off();
+		MISOPin::Mode(INPUTPULLED);
+		MISOPin::PullUp();
+		SCKPin::Mode(OUTPUT);
+		CPOL_Helper<SCKPin, CPOL>::Off();
+		CSPin::Mode(OUTPUT);
+		CSPin::On();
+	}
+
+	static DataType write_and_read(DataType value);
+
+	static void write(DataType value)
+	{
+		write_and_read(value);
+	}
+
+	template <typename SoftCSPin> static void cs_high()
+	{
+		SoftCSPin::On();
+	}
+
+	template <typename SoftCSPin> static void cs_low()
+	{
+		SoftCSPin::Off();
+	}
 
 private:
-	static uint8_t bits_count_;
-	static bool use_soft_cs_;
+	template <typename SCK, SPI_CPOL val> struct CPOL_Helper;
+
+	template<typename SCK> struct CPOL_Helper<SCK, CPOL_Low>
+	{
+		static void On() { SCK::On(); }
+		static void Off() { SCK::Off(); }
+	};
+
+	template<typename SCK> struct CPOL_Helper<SCK, CPOL_High>
+	{
+		static void On() { SCK::Off(); }
+		static void Off() { SCK::On(); }
+	};
 };
 
-template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-uint8_t SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::bits_count_ = 0;
-
-template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-bool SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::use_soft_cs_ = false;
-
-template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::init(uint8_t bits_count, SPI_CSMode cs, SPI_CPHA cpha, SPI_CPOL cpol)
+template <
+	typename DataType,
+	SPI_CPHA CPHA,
+	SPI_CPOL CPOL,
+	unsigned Delay,
+	typename MOSIPin,
+	typename MISOPin,
+	typename SCKPin,
+	typename CSPin
+>
+DataType SoftwareSPI<DataType, CPHA, CPOL, Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(DataType value)
 {
-	use_soft_cs_ = (cs == CS_Soft);
-	bits_count_ = bits_count;
-}
-
-template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-uint16_t SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(uint16_t value)
-{
-	uint16_t result = 0;
-	if (!use_soft_cs_) CSPin::Off();
-	const uint16_t test_bit = 1 << (bits_count_-1);
-	for (uint8_t bit = 0; bit < bits_count_; bit++)
+	DataType result = 0;
+	CSPin::Off();
+	const DataType test_bit = 1 << (sizeof(DataType)*8-1);
+	for (uint8_t bit = 0; bit < sizeof(DataType)*8; bit++)
 	{
 		if (value & test_bit) MOSIPin::On();
 		else MOSIPin::Off();
 		for (volatile unsigned i = 0; i < Delay; i++);
 		value <<= 1;
-		SCKPin::On();
+		CPOL_Helper<SCKPin, CPOL>::On();
 		result <<= 1;
 		for (volatile unsigned i = 0; i < Delay; i++);
 		if (MISOPin::Signalled()) result |= 1;
-		SCKPin::Off();
+		CPOL_Helper<SCKPin, CPOL>::Off();
 	}
-	if (!use_soft_cs_) CSPin::On();
+	CSPin::On();
 	return result;
-}
-
-
-template <unsigned Delay, typename MOSIPin, typename MISOPin, typename SCKPin, typename CSPin>
-void SoftwareSPI<Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write(uint16_t value)
-{
-	write_and_read(value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
