@@ -344,13 +344,12 @@ Color Button::get_default_color(const FormColors &colors) const
 void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
-	Rect check_rect(Point(widget_pd.pos.x, widget_pd.pos.y), Size(widget_size.height, widget_size.height));
+	Rect check_rect(widget_pd.pos, Size(widget_size.height, widget_size.height));
 	paint_button(paint_data, check_rect, widget_pd.color, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
-
-	Rect tect_rect(Point(check_rect.x2+widget_size.height/6, widget_pd.pos.y), Size(widget_size.width, widget_size.height));
+	Rect tect_rext(Point(check_rect.x2+widget_size.height/6, widget_pd.pos.y), widget_size);
 	display_paint_text_in_rect(
-		tect_rect,
+		tect_rext,
 		HA_LEFT,
 		widget_pd.text,
 		paint_data.font,
@@ -839,7 +838,7 @@ int16_t StringSelectorForm::paint_item(
 	Color sel_color = is_selected ? paint_data.colors->selection_bg : paint_data.colors->form_bg;
 
 	if (!is_selected) display_fill_rect(item_rect, sel_color);
-	display_draw_vertical_gradient(item_rect, sel_color.light(64), sel_color);
+	else display_draw_vertical_gradient(item_rect, sel_color.light(64), sel_color);
 
 	display_paint_text_in_rect(
 		item_rect,

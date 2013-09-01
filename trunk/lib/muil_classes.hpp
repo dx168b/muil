@@ -112,7 +112,7 @@ struct Rect
 	int16_t y2;
 
 	Rect() : x1(0), y1(0), x2(0), y2(0) {}
-	Rect(const Point pt, const Size size) : x1(pt.x), y1(pt.y), x2(pt.x+size.width), y2(pt.y+size.height) {}
+	Rect(const Point &pt, const Size &size) : x1(pt.x), y1(pt.y), x2(pt.x+size.width), y2(pt.y+size.height) {}
 	Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) : x1(x1), y1(y1), x2(x2), y2(y2) {}
 
 	Rect inflated(int16_t value) const;

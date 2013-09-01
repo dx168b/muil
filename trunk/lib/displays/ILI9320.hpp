@@ -368,4 +368,14 @@ Direction ILI9320Display<Connector, ResetPin>::cur_dir_ = DIR_UNDEFINED;
 
 } // end "namespace muil"
 
+#define IMPLEMENT_ILI9320_DISPLAY(TYPE) \
+namespace muil { \
+	Size display_get_size() { return TYPE::get_size(); } \
+	uint16_t display_get_dpi() { return TYPE::get_dpi(); } \
+	void display_set_point(int16_t x, int16_t y, const Color &color) { TYPE::set_point(x, y, color); } \
+	void display_fill_rect(const Rect &rect, const Color &color) { TYPE::fill_rect(rect, color); } \
+	void display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { TYPE::paint_character(x0, y0, data, width, height, color); } \
+}
+
+
 #endif
