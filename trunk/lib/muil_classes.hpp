@@ -118,8 +118,6 @@ struct Rect
 	int16_t height() const { return y2-y1; }
 	int16_t width() const { return x2-x1; }
 
-	void move(const Point &offset);
-
 	bool contains(const Point pt) const;
 	bool intersects(const Rect &other_rect) const;
 };

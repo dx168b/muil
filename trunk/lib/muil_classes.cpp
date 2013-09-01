@@ -71,14 +71,6 @@ Rect Rect::moved(const Point &offset) const
 	return Rect(x1+offset.x, y1+offset.y, x2+offset.x, y2+offset.y);
 }
 
-void Rect::move(const Point &offset)
-{
-	x1 += offset.x;
-	y1 += offset.y;
-	x2 += offset.x;
-	y2 += offset.y;
-}
-
 bool Rect::contains(const Point pt) const
 {
 	return (x1 <= pt.x) && (pt.x <= x2) && (y1 <= pt.y) && (pt.y <= y2);
