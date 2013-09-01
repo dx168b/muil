@@ -111,7 +111,7 @@ public:
 
 	ILI9320Display() : cur_dir_(DIR_UNDEFINED) {}
 
-	void init(void (*delay_ms)(uint16_t millisoconds));
+	void init();
 
 	static Size get_size();
 	static uint16_t get_dpi();
@@ -137,7 +137,7 @@ private:
 };
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::init(void (*delay_ms)(uint16_t millisoconds))
+void ILI9320Display<Connector, ResetPin>::init()
 {
 	delay_ms(50);
 	ResetPin::On();

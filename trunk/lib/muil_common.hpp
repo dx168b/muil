@@ -447,8 +447,6 @@ public:
 
 	void refresh_active_form() { flags_.set(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM, true); }
 
-	virtual void delay_ms(uint16_t milliseconds) = 0;
-
 private:
 	static const uint32_t FLAG_PREV_TOUCH_SCREEN_PRESSED = 0x1;
 	static const uint32_t FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM = 0x2;

@@ -32,8 +32,6 @@
 
 namespace muil {
 
-typedef void (*DelayFun)(uint16_t millisoconds);
-
 enum Direction
 {
 	DIR_UNDEFINED,
@@ -162,12 +160,13 @@ struct TouchScreenCalibrData
 {
 	const FontInfo *font;
 	const wchar_t *text;
-	DelayFun delay_ms;
 };
 
 bool  touchscreen_is_pressed();
 Point touchscreen_get_pos();
 void  touchscreen_calibrate(TouchScreenCalibrData &data);
+
+void delay_ms(uint16_t milliseconds);
 
 } // end "namespace muil"
 

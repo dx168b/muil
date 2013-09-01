@@ -112,10 +112,10 @@ void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(TouchScreenCalibrData
 
 			while (is_pressed());
 			wait_for_press();
-			data.delay_ms(50);
+			delay_ms(50);
 			paint_cross(display_points[i], Color::red());
 			get_filtered_coords(touchscreen_points[i].x, touchscreen_points[i].y);
-			data.delay_ms(500);
+			delay_ms(500);
 			while (is_pressed()) {}
 			paint_cross(display_points[i], bg_color);
 
