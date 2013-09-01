@@ -164,13 +164,9 @@ struct TouchScreenCalibrData
 	DelayFun delay_ms;
 };
 
-class TouchScreen
-{
-public:
-	virtual bool is_pressed() = 0;
-	virtual Point get_pos() = 0;
-	virtual void calibrate(TouchScreenCalibrData &data) {}
-};
+bool  touchscreen_is_pressed();
+Point touchscreen_get_pos();
+void  touchscreen_calibrate(TouchScreenCalibrData &data);
 
 } // end "namespace muil"
 

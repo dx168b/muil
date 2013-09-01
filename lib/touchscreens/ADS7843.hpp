@@ -29,11 +29,12 @@
 #define ADS7843_HPP_FILE_INCLUDED_
 
 #include "../muil_classes.hpp"
+#include "../muil_utils.hpp"
 
 namespace muil {
 
 template<class SPI, class CSPin, class PressedPin>
-class ADS7843TouchScreen : public TouchScreen
+class ADS7843TouchScreen
 {
 public:
 	bool is_pressed();
@@ -53,11 +54,6 @@ private:
 	static void get_filtered_coords(int16_t &x, int16_t &y);
 	static int16_t get_filtered_value(int16_t *values);
 	bool calc_matrix(const Point *displayPtr, const Point *screenPtr);
-
-	template <typename T> static T abs(T value)
-	{
-		return (value < 0) ? -value : value;
-	}
 
 	static const uint8_t CHX = 0x90; /* channel Y+ selection command */
 	static const uint8_t CHY = 0xd0; /* channel X+ selection command*/
@@ -245,5 +241,12 @@ bool ADS7843TouchScreen<SPI, CSPin, PressedPin>::calc_matrix(const Point *displa
 }
 
 } // end "namespace muil"
+
+#define IMPLEMENT_ADS7843_TOUCH_SCREEN(OBJ) \
+namespace muil { \
+	bool touchscreen_is_pressed() { return OBJ.is_pressed(); } \
+	Point touchscreen_get_pos() { return OBJ.get_pos(); } \
+	void  touchscreen_calibrate(TouchScreenCalibrData &data) { OBJ.calibrate(data); } \
+}
 
 #endif
