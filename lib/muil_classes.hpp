@@ -145,6 +145,7 @@ struct FontInfo
 
 Size     display_get_size();
 uint16_t display_get_dpi();
+void     display_set_offset(const Point &offset);
 void     display_set_point(int16_t x, int16_t y, const Color &color);
 void     display_fill_rect(const Rect &rect, const Color &color);
 void     display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);

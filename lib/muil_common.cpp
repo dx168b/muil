@@ -39,10 +39,9 @@ struct FormPaintData
 
 struct WidgetPaintData
 {
-	const Point&   pos;
-	const Size&    size;
-	const Color&   color;
-	const wchar_t* text;
+	const Size &size;
+	const Color &color;
+	const wchar_t *text;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,9 +163,10 @@ public:
 		{
 			Size size = translate_rel_size(width, height, client_rect_);
 			Point widget_pos = translate_rel_coord(x, y, client_rect_);
+			display_set_offset(widget_pos);
 			Color default_color = widget.get_default_color(*paint_data_.colors);
 			form_.get_widget_color(&widget, default_color);
-			WidgetPaintData paint_data = { widget_pos, size, default_color, text };
+			WidgetPaintData paint_data = { size, default_color, text };
 			widget.paint(form_, paint_data_, paint_data);
 			widget.flags_.clear(Widget::FLAG_INVALID);
 		}
@@ -265,7 +265,7 @@ Color Label::get_default_color(const FormColors &colors) const
 
 void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
-	Rect rect(widget_pd.pos, widget_pd.size);
+	Rect rect(Point(0, 0), widget_pd.size);
 	display_fill_rect(rect, widget_pd.color);
 	display_paint_text_in_rect(
 		rect,
@@ -323,7 +323,7 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 
 void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
-	Rect rect(widget_pd.pos, widget_pd.size);
+	Rect rect(Point(0, 0), widget_pd.size);
 	paint_button(paint_data, rect, widget_pd.color, flags_.get(FLAG_PRESSED), true);
 	display_paint_text_in_rect(
 		rect,
@@ -344,12 +344,13 @@ Color Button::get_default_color(const FormColors &colors) const
 void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
-	Rect check_rect(widget_pd.pos, Size(widget_size.height, widget_size.height));
+	Rect check_rect(0, 0, widget_size.height, widget_size.height);
 	paint_button(paint_data, check_rect, widget_pd.color, flags_.get(FLAG_PRESSED), true);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
-	Rect tect_rext(Point(check_rect.x2+widget_size.height/6, widget_pd.pos.y), widget_size);
+
+	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
 	display_paint_text_in_rect(
-		tect_rext,
+		tect_rect,
 		HA_LEFT,
 		widget_pd.text,
 		paint_data.font,
@@ -391,10 +392,8 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	Rect up_btn_rect, down_btn_rect;
 
 	get_buttons_rects(widget_pd.size, up_btn_rect, down_btn_rect);
-	up_btn_rect.move(widget_pd.pos);
-	down_btn_rect.move(widget_pd.pos);
 
-	const Rect value_rect = Rect(widget_pd.pos, Size(widget_pd.size.width-up_btn_rect.width(), widget_pd.size.height));
+	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, widget_pd.size.height);
 	display_fill_rect(value_rect, widget_pd.color);
 
 	paint_button(
@@ -454,24 +453,20 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size
 	switch (type)
 	{
 	case EVENT_TOUCHSCREEN_UP:
-		{
-			flags_.clear(FLAG_UP_BTN_PRESSED);
-			flags_.clear(FLAG_DOWN_BTN_PRESSED);
+		do { flags_.clear(FLAG_UP_BTN_PRESSED); // "do" used to prevent static analyze warning about missing "break"
+		flags_.clear(FLAG_DOWN_BTN_PRESSED);
 
 	case EVENT_TOUCHSCREEN_REPEATED:
-			if (hit_up_btn) set_value(value_ + 1);
-			else if (hit_down_btn) set_value(value_ - 1);
-			else refresh();
-		}
+		if (hit_up_btn) set_value(value_ + 1);
+		else if (hit_down_btn) set_value(value_ - 1);
+		else refresh();
+		} while (false);
 		break;
 
 	case EVENT_TOUCHSCREEN_DOWN:
 		flags_.set(FLAG_UP_BTN_PRESSED, hit_up_btn);
 		flags_.set(FLAG_DOWN_BTN_PRESSED, hit_down_btn);
 		if (hit_up_btn || hit_down_btn) refresh();
-		break;
-
-	default:
 		break;
 	}
 }
@@ -504,11 +499,8 @@ const wchar_t* ArrayOfStrings::get_item(size_t index) const
 void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
-	Rect btn_rect = Rect(
-		Point(widget_pd.pos.x+widget_size.width-widget_size.height, widget_pd.pos.y),
-		Size(widget_size.height, widget_size.height)
-	);
-	Rect data_rect = Rect(widget_pd.pos, Size(btn_rect.x1, widget_size.height));
+	Rect btn_rect = Rect(widget_size.width-widget_size.height, 0, widget_size.width, widget_size.height);
+	Rect data_rect = Rect(0, 0, btn_rect.x1, widget_size.height);
 
 	display_fill_rect(data_rect, widget_pd.color);
 	int selection = get_selection();
@@ -588,10 +580,11 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 
 	get_form_rects(&caption_rect, &client_rect);
 
-	FormPaintData paint_data = {font_, colors_};
+	FormPaintData paint_data = { font_, colors_};
 
 	if (!widgets_only)
 	{
+		display_set_offset(Point(0, 0));
 		display_fill_rect(caption_rect, colors_->caption);
 		display_paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
 	}
@@ -614,9 +607,8 @@ void Form::get_form_rects(Rect *caption_rect, Rect *client_rect) const
 
 void Form::show()
 {
-	Application *app = Application::get_instance();
 	before_show();
-	app->set_active_form(this);
+	Application::get_instance()->set_active_form(this);
 }
 
 ModalResult Form::show_modal()
@@ -682,7 +674,11 @@ void WidgetsForm::paint_client_area(
 	const Rect    &client_rect,
 	bool          force_repaint_all_widgets)
 {
-	if (force_repaint_all_widgets) display_fill_rect(client_rect, colors_->form_bg);
+	if (force_repaint_all_widgets)
+	{
+		display_set_offset(Point(0, 0));
+		display_fill_rect(client_rect, colors_->form_bg);
+	}
 	WidgetsPaintVisitor paint_visitor(*this, paint_data, client_rect, force_repaint_all_widgets);
 	visit_all_widgets(paint_visitor);
 }
@@ -777,6 +773,8 @@ void StringSelectorForm::paint_client_area(
 	const Rect    &client_rect,
 	bool          force_repaint_all_widgets)
 {
+	display_set_offset(Point(0, 0));
+
 	StringSelectorFormData data;
 	get_form_data(data);
 
@@ -943,7 +941,7 @@ void Application::process_touch_screen_events()
 	Point cur_pt = Point(-1, -1);
 	bool touch_screen_pressed = touchscreen_is_pressed();
 
-	FormTouchScreenEventData event = {};
+	FormTouchScreenEventData event;
 
 	if (touch_screen_pressed)
 	{
