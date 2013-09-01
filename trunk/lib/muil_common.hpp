@@ -245,7 +245,7 @@ private:
 	int min_;
 	uint8_t dec_pt_;
 
-	void get_buttons_rects(const Size &size, Display &display, Rect &up_btn_rect, Rect &down_btn_rect);
+	void get_buttons_rects(const Size &size, Rect &up_btn_rect, Rect &down_btn_rect);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,17 +321,17 @@ public:
 
 	virtual void handle_touch_screen_event(FormTouchScreenEventData &event_data) = 0;
 
-	void paint(Display &display, bool widgets_only, bool force_repaint_all_widgets);
+	void paint(bool widgets_only, bool force_repaint_all_widgets);
 
 protected:
 	virtual void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) = 0;
 
 	virtual void touch_screen_event(FormTouchScreenEventData &event_data) {}
-	virtual void before_show(const Display &display) {}
+	virtual void before_show() {}
 
 	int16_t get_caption_height() const;
 
-	void get_form_rects(const Display &display, Rect *caption_rect, Rect *client_rect) const;
+	void get_form_rects(Rect *caption_rect, Rect *client_rect) const;
 
 	const FormColors *colors_;
 	Flags<uint32_t> flags_;
@@ -395,7 +395,7 @@ public:
 
 protected:
 	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
-	void before_show(const Display &display);
+	void before_show();
 
 	int16_t paint_item(int item_index, FormPaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
 
@@ -408,7 +408,7 @@ private:
 
 	static const uint32_t FLAG_WAS_SCROLLED = 0x10000;
 
-	void get_form_data(const Display &display, StringSelectorFormData &data);
+	void get_form_data(StringSelectorFormData &data);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,7 +447,6 @@ public:
 
 	void refresh_active_form() { flags_.set(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM, true); }
 
-	virtual Display* get_display() = 0;
 	virtual TouchScreen* get_touch_screen() = 0;
 	virtual void delay_ms(uint16_t milliseconds) = 0;
 

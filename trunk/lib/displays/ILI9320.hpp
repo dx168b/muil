@@ -100,7 +100,7 @@ void ILI9320DisplaySPIConnector<SPI, CSPin>::fill_pixels(uint16_t value, uint16_
 
 
 template <typename Connector, typename ResetPin>
-class ILI9320Display : public Display
+class ILI9320Display
 {
 public:
 	enum {
@@ -111,11 +111,11 @@ public:
 
 	static void init(void (*delay_ms)(uint16_t millisoconds));
 
-	Size get_size() const;
-	uint16_t get_dpi() const;
-	void set_point(int16_t x, int16_t y, const Color &color);
-	void fill_rect(const Rect &rect, const Color &color);
-	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+	static Size get_size();
+	static uint16_t get_dpi();
+	static void set_point(int16_t x, int16_t y, const Color &color);
+	static void fill_rect(const Rect &rect, const Color &color);
+	static void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
 
 private:
 	static bool crd_is_ok(int16_t x, int16_t y)
@@ -214,13 +214,13 @@ void ILI9320Display<Connector, ResetPin>::init(void (*delay_ms)(uint16_t milliso
 }
 
 template <typename Connector, typename ResetPin>
-Size ILI9320Display<Connector, ResetPin>::get_size() const
+Size ILI9320Display<Connector, ResetPin>::get_size()
 {
 	return Size(Width, Height);
 }
 
 template <typename Connector, typename ResetPin>
-uint16_t ILI9320Display<Connector, ResetPin>::get_dpi() const
+uint16_t ILI9320Display<Connector, ResetPin>::get_dpi()
 {
 	return 96;
 }
@@ -228,8 +228,6 @@ uint16_t ILI9320Display<Connector, ResetPin>::get_dpi() const
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::set_point(int16_t x, int16_t y, const Color &color)
 {
-	x += offset_.x;
-	y += offset_.y;
 	if ( !crd_is_ok(x, y) ) return;
 	set_cursor(x, y);
 	write_reg(0x0022, rgb_to_value(color));
@@ -238,10 +236,10 @@ void ILI9320Display<Connector, ResetPin>::set_point(int16_t x, int16_t y, const 
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Color &color)
 {
-	int16_t x1 = rect.x1 + offset_.x;
-	int16_t y1 = rect.y1 + offset_.y;
-	int16_t x2 = rect.x2 + offset_.x;
-	int16_t y2 = rect.y2 + offset_.y;
+	int16_t x1 = rect.x1;
+	int16_t y1 = rect.y1;
+	int16_t x2 = rect.x2;
+	int16_t y2 = rect.y2;
 
 	if ((x1 < 0) && (x2 < 0)) return;
 	if ((y1 < 0) && (y2 < 0)) return;
@@ -286,8 +284,6 @@ void ILI9320Display<Connector, ResetPin>::paint_character(
 	uint8_t       height,
 	const Color   &color)
 {
-	x0 += offset_.x;
-	y0 += offset_.y;
 	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
 	int16_t y = y0;

@@ -48,7 +48,7 @@ private:
 	};
 
 	void wait_for_press();
-	static void paint_cross(Display &display, Point pt, const Color &color);
+	static void paint_cross(Point pt, const Color &color);
 	static int16_t read_coord(uint8_t cmd);
 	static void get_filtered_coords(int16_t &x, int16_t &y);
 	static int16_t get_filtered_value(int16_t *values);
@@ -97,7 +97,7 @@ template<class SPI, class CSPin, class PressedPin>
 void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(TouchScreenCalibrData &data)
 {
 	const Color bg_color = Color::white();
-	const Size disp_size = data.display.get_size();
+	const Size disp_size = display_get_size();
 
 	Point display_points[3];
 	Point touchscreen_points[3];
@@ -105,23 +105,23 @@ void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(TouchScreenCalibrData
 	display_points[1] = Point(disp_size.width/2, 9*disp_size.height/10);
 	display_points[2] = Point(9*disp_size.width/10, disp_size.height/2);
 
-	data.display.fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), bg_color);
+	display_fill_rect(Rect(0, 0, disp_size.width-1, disp_size.height-1), bg_color);
 
 	for (size_t i = 0; i < 3; i++)
 	{
 		for (;;)
 		{
-			data.display.paint_text(1, 1, data.text, data.font, Color::black());
-			paint_cross(data.display, display_points[i], Color::blue());
+			display_paint_text(1, 1, data.text, data.font, Color::black());
+			paint_cross(display_points[i], Color::blue());
 
 			while (is_pressed());
 			wait_for_press();
 			data.delay_ms(50);
-			paint_cross(data.display, display_points[i], Color::red());
+			paint_cross(display_points[i], Color::red());
 			get_filtered_coords(touchscreen_points[i].x, touchscreen_points[i].y);
 			data.delay_ms(500);
 			while (is_pressed()) {}
-			paint_cross(data.display, display_points[i], bg_color);
+			paint_cross(display_points[i], bg_color);
 
 			if ((touchscreen_points[i].x != -1) && (touchscreen_points[i].y != -1)) break;
 		}
@@ -131,11 +131,11 @@ void ADS7843TouchScreen<SPI, CSPin, PressedPin>::calibrate(TouchScreenCalibrData
 }
 
 template<class SPI, class CSPin, class PressedPin>
-void ADS7843TouchScreen<SPI, CSPin, PressedPin>::paint_cross(Display &display, Point pt, const Color &color)
+void ADS7843TouchScreen<SPI, CSPin, PressedPin>::paint_cross(Point pt, const Color &color)
 {
-	const int16_t line_size = display.get_dpi()/10;
-	display.fill_rect(Rect(pt.x-1, pt.y-line_size, pt.x+1, pt.y+line_size), color);
-	display.fill_rect(Rect(pt.x-line_size, pt.y-1, pt.x+line_size, pt.y+1), color);
+	const int16_t line_size = display_get_dpi()/10;
+	display_fill_rect(Rect(pt.x-1, pt.y-line_size, pt.x+1, pt.y+line_size), color);
+	display_fill_rect(Rect(pt.x-line_size, pt.y-1, pt.x+line_size, pt.y+1), color);
 }
 
 template<class SPI, class CSPin, class PressedPin>

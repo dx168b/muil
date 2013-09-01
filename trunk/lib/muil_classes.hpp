@@ -116,9 +116,11 @@ struct Rect
 	Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) : x1(x1), y1(y1), x2(x2), y2(y2) {}
 
 	Rect inflated(int16_t value) const;
-	Rect moved(const Point offset) const;
+	Rect moved(const Point &offset) const;
 	int16_t height() const { return y2-y1; }
 	int16_t width() const { return x2-x1; }
+
+	void move(const Point &offset);
 
 	bool contains(const Point pt) const;
 	bool intersects(const Rect &other_rect) const;
@@ -141,36 +143,22 @@ struct FontInfo
 	const uint8_t*      data;        // pointer to generated array of character visual representation
 };
 
-class Display
-{
-public:
-	virtual Size get_size() const = 0;
-	virtual uint16_t get_dpi() const = 0;
+Size     display_get_size();
+uint16_t display_get_dpi();
+void     display_set_point(int16_t x, int16_t y, const Color &color);
+void     display_fill_rect(const Rect &rect, const Color &color);
+void     display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+void     display_draw_rect(const Rect &rect, int16_t width, const Color &color);
+void     display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
+void     display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
+void     display_paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color);
+void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
+void     display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color);
+Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
 
-	virtual void set_point(int16_t x, int16_t y, const Color &color) = 0;
-	virtual void fill_rect(const Rect &rect, const Color &color) = 0;
-	virtual void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) = 0;
-
-	void set_offset(const Point &offset) { offset_ = offset; }
-	void draw_rect(const Rect &rect, int16_t width, const Color &color);
-	void draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
-	void draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
-	void paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color);
-	void paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
-	void fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color);
-
-	static Size get_text_size(const FontInfo *font, const wchar_t *text);
-
-protected:
-	Point offset_;
-
-private:
-	static const FontCharInfo* find_char_info(const FontInfo *font, wchar_t chr);
-};
 
 struct TouchScreenCalibrData
 {
-	Display &display;
 	const FontInfo *font;
 	const wchar_t *text;
 	DelayFun delay_ms;
