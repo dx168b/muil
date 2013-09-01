@@ -447,7 +447,6 @@ public:
 
 	void refresh_active_form() { flags_.set(FLAG_REPAINT_WIDGETS_ON_ACTIVE_FORM, true); }
 
-	virtual TouchScreen* get_touch_screen() = 0;
 	virtual void delay_ms(uint16_t milliseconds) = 0;
 
 private:

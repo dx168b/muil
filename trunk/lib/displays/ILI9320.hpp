@@ -109,13 +109,15 @@ public:
 		SupportColor = 1
 	};
 
-	static void init(void (*delay_ms)(uint16_t millisoconds));
+	ILI9320Display() : cur_dir_(DIR_UNDEFINED) {}
+
+	void init(void (*delay_ms)(uint16_t millisoconds));
 
 	static Size get_size();
 	static uint16_t get_dpi();
 	static void set_point(int16_t x, int16_t y, const Color &color);
-	static void fill_rect(const Rect &rect, const Color &color);
-	static void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+	void fill_rect(const Rect &rect, const Color &color);
+	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
 
 private:
 	static bool crd_is_ok(int16_t x, int16_t y)
@@ -127,9 +129,9 @@ private:
 	static uint16_t read_reg(uint8_t reg);
 	static void set_cursor(int32_t x, int32_t y);
 	static uint16_t rgb_to_value(Color color);
-	static void set_direction(Direction dir);
+	void set_direction(Direction dir);
 
-	static Direction cur_dir_;
+	Direction cur_dir_;
 };
 
 template <typename Connector, typename ResetPin>
@@ -363,18 +365,15 @@ void ILI9320Display<Connector, ResetPin>::set_direction(Direction dir)
 	cur_dir_ = dir;
 }
 
-template <typename Connector, typename ResetPin>
-Direction ILI9320Display<Connector, ResetPin>::cur_dir_ = DIR_UNDEFINED;
-
 } // end "namespace muil"
 
-#define IMPLEMENT_ILI9320_DISPLAY(TYPE) \
+#define IMPLEMENT_ILI9320_DISPLAY(OBJ) \
 namespace muil { \
-	Size display_get_size() { return TYPE::get_size(); } \
-	uint16_t display_get_dpi() { return TYPE::get_dpi(); } \
-	void display_set_point(int16_t x, int16_t y, const Color &color) { TYPE::set_point(x, y, color); } \
-	void display_fill_rect(const Rect &rect, const Color &color) { TYPE::fill_rect(rect, color); } \
-	void display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { TYPE::paint_character(x0, y0, data, width, height, color); } \
+	Size display_get_size() { return OBJ.get_size(); } \
+	uint16_t display_get_dpi() { return OBJ.get_dpi(); } \
+	void display_set_point(int16_t x, int16_t y, const Color &color) { OBJ.set_point(x, y, color); } \
+	void display_fill_rect(const Rect &rect, const Color &color) { OBJ.fill_rect(rect, color); } \
+	void display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { OBJ.paint_character(x0, y0, data, width, height, color); } \
 }
 
 

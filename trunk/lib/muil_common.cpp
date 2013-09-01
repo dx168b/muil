@@ -470,6 +470,9 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size
 		flags_.set(FLAG_DOWN_BTN_PRESSED, hit_down_btn);
 		if (hit_up_btn || hit_down_btn) refresh();
 		break;
+
+	default:
+		break;
 	}
 }
 
@@ -938,14 +941,13 @@ void Application::process_touch_screen_events()
 	if (active_form_ == NULL) return;
 
 	Point cur_pt = Point(-1, -1);
-	TouchScreen *touch_screen = get_touch_screen();
-	bool touch_screen_pressed = touch_screen->is_pressed();
+	bool touch_screen_pressed = touchscreen_is_pressed();
 
 	FormTouchScreenEventData event = {};
 
 	if (touch_screen_pressed)
 	{
-		cur_pt = touch_screen->get_pos();
+		cur_pt = touchscreen_get_pos();
 		if ((cur_pt.x == -1) || (cur_pt.y == -1)) touch_screen_pressed = false;
 	}
 
