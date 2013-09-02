@@ -140,11 +140,11 @@ template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::init()
 {
 	delay_ms(50);
-	ResetPin::On();
+	ResetPin::on();
 	delay_ms(50);
-	ResetPin::Off();
+	ResetPin::off();
 	delay_ms(50);
-	ResetPin::On();
+	ResetPin::on();
 	delay_ms(50);
 
 	struct RegValue

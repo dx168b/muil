@@ -66,7 +66,7 @@ private:
 template<class SPI, class CSPin, class PressedPin>
 bool ADS7843TouchScreen<SPI, CSPin, PressedPin>::is_pressed()
 {
-	bool result = !PressedPin::Signalled();
+	bool result = !PressedPin::get_in();
 	if (!result) last_pos_ = Point(-1, -1);
 	return result;
 }
