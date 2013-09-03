@@ -126,12 +126,12 @@ public:
 
 	inline static bool get_in()
 	{
-		return *reinterpret_cast<uint32_t*>(BB_IN_ADDR) != 0;
+		return *reinterpret_cast<volatile uint32_t*>(BB_IN_ADDR) != 0;
 	}
 
 	inline bool static get_out()
 	{
-		return *reinterpret_cast<uint32_t*>(BB_OUT_ADDR) != 0;
+		return *reinterpret_cast<volatile uint32_t*>(BB_OUT_ADDR) != 0;
 	}
 
 private:
