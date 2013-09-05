@@ -873,7 +873,7 @@ void StringSelectorForm::get_form_data(StringSelectorFormData &data)
 	else
 	{
 		data.offscreen_items_count = data.item_count - data.visible_count;
-		data.scr_bar_width = display_get_dpi() / 4;
+		data.scr_bar_width = display_get_dpi() / 8;
 		int16_t x1 = data.client_rect.x2 - data.scr_bar_width;
 		int16_t x2 = data.client_rect.x2;
 		int16_t y1 = data.client_rect.y1 + top_item_index_ * client_height / data.item_count;
