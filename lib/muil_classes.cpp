@@ -61,7 +61,7 @@ Color Color::between(const Color &color1, const Color &color2, int16_t value, in
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Rect Rect::inflated(int16_t value) const
+Rect Rect::inflated(int value) const
 {
 	return Rect(x1-value, y1-value, x2+value, y2+value);
 }
@@ -100,27 +100,27 @@ const FontCharInfo* display_find_char_info(const FontInfo *font, wchar_t chr)
 void display_draw_rect(const Rect &rect, int16_t width, const Color &color)
 {
 	width--;
-	display_fill_rect(Rect(rect.x1, rect.y1+width, rect.x1+width, rect.y2-width), color);
-	display_fill_rect(Rect(rect.x2-width, rect.y1+width, rect.x2, rect.y2-width), color);
-	display_fill_rect(Rect(rect.x1+width, rect.y1, rect.x2-width, rect.y1+width), color);
-	display_fill_rect(Rect(rect.x1+width, rect.y2-width, rect.x2-width, rect.y2), color);
+	display_fill_rect(rect.x1, rect.y1+width, rect.x1+width, rect.y2-width, color);
+	display_fill_rect(rect.x2-width, rect.y1+width, rect.x2, rect.y2-width, color);
+	display_fill_rect(rect.x1+width, rect.y1, rect.x2-width, rect.y1+width, color);
+	display_fill_rect(rect.x1+width, rect.y2-width, rect.x2-width, rect.y2, color);
 }
 
 void display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2)
 {
 	const uint16_t height = rect.y2 - rect.y1;
 	for (int16_t y = rect.y1, i = 0; y <= rect.y2; y++, i++)
-		display_fill_rect(Rect(rect.x1, y, rect.x2, y), Color::between(color1, color2, i, height));
+		display_fill_rect(rect.x1, y, rect.x2, y, Color::between(color1, color2, i, height));
 }
 
 void display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2)
 {
 	const uint16_t width = rect.x2 - rect.x1;
 	for (int x = rect.x1, i = 0; x <= rect.x2; x++, i++)
-		display_fill_rect(Rect(x, rect.y1, x, rect.y2), Color::between(color1, color2, i, width));
+		display_fill_rect(x, rect.y1, x, rect.y2, Color::between(color1, color2, i, width));
 }
 
-void display_paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color)
+void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color)
 {
 	for (size_t i = 0; text[i]; i++)
 	{
@@ -191,6 +191,11 @@ Size display_get_text_size(const FontInfo *font, const wchar_t *text)
 	return Size(width, font->heightPages);
 }
 
+void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
+{
+	display_fill_rect(Rect(x1, y1, x2, y2), color);
+}
+
 void display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
 {
 	if (pt1.x > pt2.x) swap(pt1, pt2);
@@ -230,7 +235,7 @@ void display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
 		}
 
 		if ((x >= 0) || (x < scr_width))
-			display_fill_rect(Rect(x, min(y1, y2), x, max(y1, y2)), color);
+			display_fill_rect(x, min(y1, y2), x, max(y1, y2), color);
 
 		cnt_y1 -= dy1_abs;
 		if (cnt_y1 < 0)

@@ -115,10 +115,10 @@ public:
 
 	static Size get_size();
 	static uint16_t get_dpi();
-	void set_offset(const Point &offset) { offset_ = offset; }
-	void set_point(int16_t x, int16_t y, const Color &color);
+	void set_offset(int x, int y) { offset_x_ = x; offset_y_ = y; }
+	void set_point(int x, int y, const Color &color);
 	void fill_rect(const Rect &rect, const Color &color);
-	void paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+	void paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
 
 private:
 	static bool crd_is_ok(int16_t x, int16_t y)
@@ -133,7 +133,8 @@ private:
 	void set_direction(Direction dir);
 
 	Direction cur_dir_;
-	Point offset_;
+	int offset_x_;
+	int offset_y_;
 };
 
 template <typename Connector, typename ResetPin>
@@ -230,10 +231,10 @@ uint16_t ILI9320Display<Connector, ResetPin>::get_dpi()
 }
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::set_point(int16_t x, int16_t y, const Color &color)
+void ILI9320Display<Connector, ResetPin>::set_point(int x, int y, const Color &color)
 {
-	x += offset_.x;
-	y += offset_.y;
+	x += offset_x_;
+	y += offset_y_;
 	if ( !crd_is_ok(x, y) ) return;
 	set_cursor(x, y);
 	write_reg(0x0022, rgb_to_value(color));
@@ -242,10 +243,10 @@ void ILI9320Display<Connector, ResetPin>::set_point(int16_t x, int16_t y, const 
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Color &color)
 {
-	int16_t x1 = rect.x1 + offset_.x;
-	int16_t y1 = rect.y1 + offset_.y;
-	int16_t x2 = rect.x2 + offset_.x;
-	int16_t y2 = rect.y2 + offset_.y;
+	int16_t x1 = rect.x1 + offset_x_;
+	int16_t y1 = rect.y1 + offset_y_;
+	int16_t x2 = rect.x2 + offset_x_;
+	int16_t y2 = rect.y2 + offset_y_;
 
 	if ((x1 < 0) && (x2 < 0)) return;
 	if ((y1 < 0) && (y2 < 0)) return;
@@ -283,15 +284,15 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::paint_character(
-	int16_t       x0,
-	int16_t       y0,
+	int           x0,
+	int           y0,
 	const uint8_t *data,
 	uint8_t       width,
 	uint8_t       height,
 	const Color   &color)
 {
-	x0 += offset_.x;
-	y0 += offset_.y;
+	x0 += offset_x_;
+	y0 += offset_y_;
 	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
 	int16_t y = y0;
@@ -377,10 +378,10 @@ void ILI9320Display<Connector, ResetPin>::set_direction(Direction dir)
 namespace muil { \
 	Size display_get_size() { return OBJ.get_size(); } \
 	uint16_t display_get_dpi() { return OBJ.get_dpi(); } \
-	void display_set_offset(const Point &offset) { OBJ.set_offset(offset); } \
-	void display_set_point(int16_t x, int16_t y, const Color &color) { OBJ.set_point(x, y, color); } \
+	void display_set_offset(int x, int y) { OBJ.set_offset(x, y); } \
+	void display_set_point(int x, int y, const Color &color) { OBJ.set_point(x, y, color); } \
 	void display_fill_rect(const Rect &rect, const Color &color) { OBJ.fill_rect(rect, color); } \
-	void display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { OBJ.paint_character(x0, y0, data, width, height, color); } \
+	void display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { OBJ.paint_character(x0, y0, data, width, height, color); } \
 }
 
 
