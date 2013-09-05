@@ -127,7 +127,7 @@ static void paint_tirangle(
 	int16_t top = up ? rect.y1 : rect.y2;
 	int16_t bottom = up ? rect.y2 : rect.y1;
 
-	display_fill_triangle(Point(rect.x1, bottom), Point(mx, top), Point(rect.x2, bottom), paint_data.colors->ctrl_sign);
+	display_fill_triangle(rect.x1, bottom, mx, top, rect.x2, bottom, paint_data.colors->ctrl_sign);
 }
 
 static Point translate_rel_coord(uint8_t x, uint8_t y, const Rect &client_rect)
@@ -381,8 +381,8 @@ void CheckBox::paint_check(FormPaintData &paint_data, const Rect &rect)
 	int16_t x4 = rect.x2 - layer;
 	int16_t y4 = rect.y1 + layer;
 
-	display_fill_triangle(Point(x1, y1), Point(x2, y2), Point(x2, y3), paint_data.colors->ctrl_sign);
-	display_fill_triangle(Point(x2, y2), Point(x2, y3), Point(x4, y4), paint_data.colors->ctrl_sign);
+	display_fill_triangle(x1, y1, x2, y2, x2, y3, paint_data.colors->ctrl_sign);
+	display_fill_triangle(x2, y2, x2, y3, x4, y4, paint_data.colors->ctrl_sign);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

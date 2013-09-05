@@ -196,62 +196,62 @@ void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
 	display_fill_rect(Rect(x1, y1, x2, y2), color);
 }
 
-void display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color)
+void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color)
 {
-	if (pt1.x > pt2.x) swap(pt1, pt2);
-	if (pt2.x > pt3.x) swap(pt2, pt3);
-	if (pt1.x > pt3.x) swap(pt1, pt3);
+	if (x1 > x2) { swap(x1, x2); swap(y1, y2); }
+	if (x2 > x3) { swap(x2, x3); swap(y2, y3); }
+	if (x1 > x3) { swap(x1, x3); swap(y1, y3); }
 
-	uint16_t dx1 = pt2.x - pt1.x;
-	int16_t dy1 = pt2.y - pt1.y;
+	uint16_t dx1 = x2 - x1;
+	int16_t dy1 = y2 - y1;
 	uint16_t dy1_abs = dx1 ? (abs(dy1) % dx1) : 0;
-	int16_t step1 = pt2.y > pt1.y ? 1 : -1;
+	int16_t step1 = y2 > y1 ? 1 : -1;
 	int16_t int1 = dx1 ? (dy1 / dx1) : 0;
 	int16_t cnt_y1 = dx1 / 2;
-	int16_t y1 = pt1.y;
+	int16_t yy1 = y1;
 
-	uint16_t dx2 = pt3.x - pt1.x;
-	int16_t dy2 = pt3.y - pt1.y;
+	uint16_t dx2 = x3 - x1;
+	int16_t dy2 = y3 - y1;
 	uint16_t dy2_abs = dx2 ? (abs(dy2) % dx2) : 0;
-	int16_t step2 = pt3.y > pt1.y ? 1 : -1;
+	int16_t step2 = y3 > y1 ? 1 : -1;
 	int16_t int2 = dx2 ? (dy2 / dx2) : 0;
 	int16_t cnt_y2 = dx2 / 2;
-	int16_t y2 = pt1.y;
+	int16_t yy2 = y1;
 
 	int16_t scr_width = display_get_size().width;
 
-	for (int16_t x = pt1.x; x <= pt3.x; x++)
+	for (int16_t x = x1; x <= x3; x++)
 	{
-		if (x == pt2.x)
+		if (x == x2)
 		{
-			dx1 = pt3.x - pt2.x;
+			dx1 = x3 - x2;
 			if (dx1 == 0) break;
-			dy1 = pt3.y - pt2.y;
+			dy1 = y3 - y2;
 			dy1_abs = abs(dy1) % dx1;
-			step1 = pt3.y > pt2.y ? 1 : -1;
+			step1 = y3 > y2 ? 1 : -1;
 			int1 = dy1 / dx1;
 			cnt_y1 = dx1 / 2;
-			y1 = pt2.y;
+			yy1 = y2;
 		}
 
 		if ((x >= 0) || (x < scr_width))
-			display_fill_rect(x, min(y1, y2), x, max(y1, y2), color);
+			display_fill_rect(x, min(yy1, yy2), x, max(yy1, yy2), color);
 
 		cnt_y1 -= dy1_abs;
 		if (cnt_y1 < 0)
 		{
 			cnt_y1 += dx1;
-			y1 += step1;
+			yy1 += step1;
 		}
-		y1 += int1;
+		yy1 += int1;
 
 		cnt_y2 -= dy2_abs;
 		if (cnt_y2 < 0)
 		{
 			cnt_y2 += dx2;
-			y2 += step2;
+			yy2 += step2;
 		}
-		y2 += int2;
+		yy2 += int2;
 	}
 }
 
