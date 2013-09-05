@@ -152,7 +152,7 @@ void     display_draw_vertical_gradient(const Rect &rect, const Color &color1, c
 void     display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
 void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color);
 void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
-void     display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color);
+void     display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color);
 Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
 
 struct TouchScreenCalibrData
