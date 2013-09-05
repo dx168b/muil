@@ -113,7 +113,7 @@ struct Rect
 	Rect(const Point &pt, const Size &size) : x1(pt.x), y1(pt.y), x2(pt.x+size.width), y2(pt.y+size.height) {}
 	Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) : x1(x1), y1(y1), x2(x2), y2(y2) {}
 
-	Rect inflated(int16_t value) const;
+	Rect inflated(int value) const;
 	Rect moved(const Point &offset) const;
 	int16_t height() const { return y2-y1; }
 	int16_t width() const { return x2-x1; }
@@ -141,18 +141,19 @@ struct FontInfo
 
 Size     display_get_size();
 uint16_t display_get_dpi();
-void     display_set_offset(const Point &offset);
-void     display_set_point(int16_t x, int16_t y, const Color &color);
+void     display_set_offset(int x, int y);
+void     display_set_point(int x, int y, const Color &color);
 void     display_fill_rect(const Rect &rect, const Color &color);
-void     display_paint_character(int16_t x0, int16_t y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+void     display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+
+void     display_fill_rect(int x1, int y1, int x2, int y2, const Color &color);
 void     display_draw_rect(const Rect &rect, int16_t width, const Color &color);
 void     display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
 void     display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
-void     display_paint_text(int16_t x, int16_t y, const wchar_t *text, const FontInfo *font, const Color &color);
+void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color);
 void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
 void     display_fill_triangle(Point pt1, Point pt2, Point pt3, const Color &color);
 Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
-
 
 struct TouchScreenCalibrData
 {

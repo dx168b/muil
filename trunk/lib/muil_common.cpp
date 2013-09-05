@@ -49,7 +49,7 @@ struct WidgetPaintData
 static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 {
 	bool is_negative = value < 0;
-	if (value < 0) value = -value;
+	if (is_negative) value = -value;
 	int tmp = value;
 	uint8_t len = 0;
 	while (tmp) { tmp /= 10; len++; }
@@ -163,7 +163,7 @@ public:
 		{
 			Size size = translate_rel_size(width, height, client_rect_);
 			Point widget_pos = translate_rel_coord(x, y, client_rect_);
-			display_set_offset(widget_pos);
+			display_set_offset(widget_pos.x, widget_pos.y);
 			Color default_color = widget.get_default_color(*paint_data_.colors);
 			form_.get_widget_color(&widget, default_color);
 			WidgetPaintData paint_data = { size, default_color, text };
@@ -588,7 +588,7 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 
 	if (!widgets_only)
 	{
-		display_set_offset(Point(0, 0));
+		display_set_offset(0, 0);
 		display_fill_rect(caption_rect, colors_->caption);
 		display_paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
 	}
@@ -636,8 +636,6 @@ ModalResult Form::show_modal()
 
 void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data)
 {
-	Rect client_rect;
-	get_form_rects(NULL, &client_rect);
 	if (event_data.type == EVENT_TOUCHSCREEN_UP)
 	{
 		if (last_pressed_widget_)
@@ -658,6 +656,8 @@ void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data
 	}
 	else
 	{
+		Rect client_rect;
+		get_form_rects(NULL, &client_rect);
 		TouchScreenPressVisitor touch_screen_visitor(
 			*this,
 			client_rect,
@@ -680,7 +680,7 @@ void WidgetsForm::paint_client_area(
 {
 	if (force_repaint_all_widgets)
 	{
-		display_set_offset(Point(0, 0));
+		display_set_offset(0, 0);
 		display_fill_rect(client_rect, colors_->form_bg);
 	}
 	WidgetsPaintVisitor paint_visitor(*this, paint_data, client_rect, force_repaint_all_widgets);
@@ -747,7 +747,8 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 		flags_.clear(FLAG_WAS_SCROLLED);
 		break;
 
-	case EVENT_TOUCHSCREEN_MOVE: {
+	case EVENT_TOUCHSCREEN_MOVE:
+		{
 			int move = (event_data.pt.y - scroll_drag_start_y_) / data.item_height;
 			int new_top_item_index = scroll_drag_start_top_item_index_ - move;
 			if (new_top_item_index < 0) new_top_item_index = 0;
@@ -777,7 +778,7 @@ void StringSelectorForm::paint_client_area(
 	const Rect    &client_rect,
 	bool          force_repaint_all_widgets)
 {
-	display_set_offset(Point(0, 0));
+	display_set_offset(0, 0);
 
 	StringSelectorFormData data;
 	get_form_data(data);
@@ -794,7 +795,7 @@ void StringSelectorForm::paint_client_area(
 	if (y2 < client_rect.y2)
 	{
 		display_fill_rect(
-			Rect(client_rect.x1, y2, client_rect.x2, client_rect.y2),
+			client_rect.x1, y2, client_rect.x2, client_rect.y2,
 			paint_data.colors->form_bg
 		);
 	}
@@ -804,11 +805,11 @@ void StringSelectorForm::paint_client_area(
 	{
 		const Color sb_color = paint_data.colors->form_bg.light(-16);
 		display_fill_rect(
-			Rect(data.scr_bar_area.x1, data.scr_bar_area.y1, data.scr_bar_area.x2, data.scr_bar_handle.y1),
+			data.scr_bar_area.x1, data.scr_bar_area.y1, data.scr_bar_area.x2, data.scr_bar_handle.y1,
 			sb_color
 		);
 		display_fill_rect(
-			Rect(data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2),
+			data.scr_bar_area.x1, data.scr_bar_handle.y2, data.scr_bar_area.x2, data.scr_bar_area.y2,
 			sb_color
 		);
 
