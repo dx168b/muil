@@ -66,11 +66,6 @@ Rect Rect::inflated(int value) const
 	return Rect(x1-value, y1-value, x2+value, y2+value);
 }
 
-Rect Rect::moved(const Point &offset) const
-{
-	return Rect(x1+offset.x, y1+offset.y, x2+offset.x, y2+offset.y);
-}
-
 bool Rect::contains(const Point pt) const
 {
 	return (x1 <= pt.x) && (pt.x <= x2) && (y1 <= pt.y) && (pt.y <= y2);

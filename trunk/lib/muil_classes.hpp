@@ -114,7 +114,6 @@ struct Rect
 	Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) : x1(x1), y1(y1), x2(x2), y2(y2) {}
 
 	Rect inflated(int value) const;
-	Rect moved(const Point &offset) const;
 	int16_t height() const { return y2-y1; }
 	int16_t width() const { return x2-x1; }
 
