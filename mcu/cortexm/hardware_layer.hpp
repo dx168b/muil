@@ -281,14 +281,45 @@ DataType SoftwareSPI<DataType, CPHA, CPOL, Delay, MOSIPin, MISOPin, SCKPin, CSPi
 	return result;
 }
 
-template <int N> struct SPI_Helper {};
+namespace detailed
+{
+	template<int N> struct SPI_Helper;
+
+	template<> struct SPI_Helper<1>
+	{
+		enum
+		{
+			SPI_Mem_Addr = SPI1_BASE,
+			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB2ENR),
+			RCC_ABP_Mask = RCC_APB2Periph_SPI1
+		};
+
+		typedef Pin<PA, 7> MOSI_Pin;
+		typedef Pin<PA, 6> MISO_Pin;
+		typedef Pin<PA, 5> SCK_Pin;
+		typedef Pin<PA, 4> CS_Pin;
+	};
+
+	template<> struct SPI_Helper<2>
+	{
+		enum
+		{
+			SPI_Mem_Addr = SPI2_BASE,
+			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB1ENR),
+			RCC_ABP_Mask = RCC_APB1Periph_SPI2
+		};
+
+		typedef Pin<PB, 15> MOSI_Pin;
+		typedef Pin<PB, 14> MISO_Pin;
+		typedef Pin<PB, 13> SCK_Pin;
+		typedef Pin<PB, 12> CS_Pin;
+	};
+}
 
 template <int N>
 class SPI
 {
 public:
-	typedef SPI_Helper<N> Helper;
-
 	static void init(
 		const SPI_BitsCount   bits_count,
 		const SPI_CSMode      cs_mode,
@@ -354,32 +385,20 @@ public:
 	{
 		CSPin::off();
 	}
+
+	static void enable()
+	{
+		*reinterpret_cast<volatile uint32_t*>(Helper::RCC_ABP_Addr) |= Helper::RCC_ABP_Mask;
+	}
+
+	static void disable()
+	{
+		*reinterpret_cast<volatile uint32_t*>(Helper::RCC_ABP_Addr) &= ~Helper::RCC_ABP_Mask;
+	}
+
+private:
+	typedef detailed::SPI_Helper<N> Helper;
 };
-
-template <> struct SPI_Helper<1>
-{
-	enum {
-		SPI_Mem_Addr = SPI1_BASE
-	};
-
-	typedef Pin<PA, 7> MOSI_Pin;
-	typedef Pin<PA, 6> MISO_Pin;
-	typedef Pin<PA, 5> SCK_Pin;
-	typedef Pin<PA, 4> CS_Pin;
-};
-
-template <> struct SPI_Helper<2>
-{
-	enum {
-		SPI_Mem_Addr = SPI2_BASE
-	};
-
-	typedef Pin<PB, 15> MOSI_Pin;
-	typedef Pin<PB, 14> MISO_Pin;
-	typedef Pin<PB, 13> SCK_Pin;
-	typedef Pin<PB, 12> CS_Pin;
-};
-
 
 } // end 'namespace hl'
 
