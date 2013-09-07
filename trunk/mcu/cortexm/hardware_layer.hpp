@@ -17,6 +17,33 @@ struct BitBandPeriph
 };
 
 
+/****[ DWT ]*******************************************************************/
+
+class DWTCounter
+{
+public:
+	static void enable()
+	{
+		*reinterpret_cast<volatile uint32_t*>(SCB_DEMCR)  |= 0x01000000;
+		*reinterpret_cast<volatile uint32_t*>(DWT_CYCCNT)  = 0;
+		*reinterpret_cast<volatile uint32_t*>(DWT_CONTROL) |= 1;
+	}
+
+	static uint32_t get()
+	{
+		return *reinterpret_cast<volatile uint32_t*>(DWT_CYCCNT);
+	}
+
+private:
+	enum
+	{
+		DWT_CYCCNT  = 0xE0001004,
+		DWT_CONTROL = 0xE0001000,
+		SCB_DEMCR   = 0xE000EDFC
+	};
+};
+
+
 /****[ GPIO ]******************************************************************/
 
 namespace detailed
@@ -403,6 +430,32 @@ public:
 private:
 	typedef detailed::SPI_Helper<N> Helper;
 };
+
+
+/****[ Delay utils ]***********************************************************/
+
+template <unsigned SysFreq>
+class Delay
+{
+public:
+	static void exec_ms(uint32_t value)
+	{
+		wait(value * (SysFreq/1000));
+	}
+
+	static void exec_us(uint32_t value)
+	{
+		wait(value * (SysFreq/1000000));
+	}
+
+private:
+	static void wait(uint32_t ticks)
+	{
+		int32_t stop = DWTCounter::get()+ticks;
+		while ((int32_t)(DWTCounter::get()-stop) < 0) {}
+	}
+};
+
 
 } // end 'namespace hl'
 
