@@ -285,13 +285,14 @@ namespace detailed
 {
 	template<int N> struct SPI_Helper;
 
+#ifdef RCC_APB2ENR_SPI1EN
 	template<> struct SPI_Helper<1>
 	{
 		enum
 		{
 			SPI_Mem_Addr = SPI1_BASE,
 			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB2ENR),
-			RCC_ABP_Mask = 0x00001000 // RCC_APB2Periph_SPI1
+			RCC_ABP_Mask = RCC_APB2ENR_SPI1EN
 		};
 
 		typedef Pin<PA, 7> MOSI_Pin;
@@ -299,14 +300,16 @@ namespace detailed
 		typedef Pin<PA, 5> SCK_Pin;
 		typedef Pin<PA, 4> CS_Pin;
 	};
+#endif
 
+#ifdef RCC_APB1ENR_SPI2EN
 	template<> struct SPI_Helper<2>
 	{
 		enum
 		{
 			SPI_Mem_Addr = SPI2_BASE,
 			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB1ENR),
-			RCC_ABP_Mask = 0x00004000 //RCC_APB1Periph_SPI2
+			RCC_ABP_Mask = RCC_APB1ENR_SPI2EN
 		};
 
 		typedef Pin<PB, 15> MOSI_Pin;
@@ -314,6 +317,7 @@ namespace detailed
 		typedef Pin<PB, 13> SCK_Pin;
 		typedef Pin<PB, 12> CS_Pin;
 	};
+#endif
 }
 
 template <int N>
