@@ -291,7 +291,7 @@ namespace detailed
 		{
 			SPI_Mem_Addr = SPI1_BASE,
 			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB2ENR),
-			RCC_ABP_Mask = RCC_APB2Periph_SPI1
+			RCC_ABP_Mask = 0x00001000 // RCC_APB2Periph_SPI1
 		};
 
 		typedef Pin<PA, 7> MOSI_Pin;
@@ -306,7 +306,7 @@ namespace detailed
 		{
 			SPI_Mem_Addr = SPI2_BASE,
 			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB1ENR),
-			RCC_ABP_Mask = RCC_APB1Periph_SPI2
+			RCC_ABP_Mask = 0x00004000 //RCC_APB1Periph_SPI2
 		};
 
 		typedef Pin<PB, 15> MOSI_Pin;
