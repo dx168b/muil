@@ -12,8 +12,23 @@ template <unsigned Addrress, unsigned Bit>
 struct BitBandPeriph
 {
 	enum {
-		result = PERIPH_BB_BASE + ((Addrress - PERIPH_BASE) * 32) + (Bit * 4)
+		addr = PERIPH_BB_BASE + ((Addrress - PERIPH_BASE) * 32) + (Bit * 4)
 	};
+
+	inline static bool get()
+	{
+		return *reinterpret_cast<volatile uint32_t*>(addr) != 0;
+	}
+
+	inline static void on()
+	{
+		*reinterpret_cast<volatile uint32_t*>(addr) = 1;
+	}
+
+	inline static void off()
+	{
+		*reinterpret_cast<volatile uint32_t*>(addr) = 0;
+	}
 };
 
 
@@ -29,7 +44,7 @@ public:
 		*reinterpret_cast<volatile uint32_t*>(DWT_CONTROL) |= 1;
 	}
 
-	static uint32_t get()
+	inline static uint32_t get()
 	{
 		return *reinterpret_cast<volatile uint32_t*>(DWT_CYCCNT);
 	}
@@ -143,22 +158,22 @@ public:
 
 	inline static void on()
 	{
-		*reinterpret_cast<volatile uint32_t*>(BB_OUT_ADDR) = 1;
+		OutBitBang::on();
 	}
 
 	inline static void off()
 	{
-		*reinterpret_cast<volatile uint32_t*>(BB_OUT_ADDR) = 0;
+		OutBitBang::off();
 	}
 
 	inline static bool get_in()
 	{
-		return *reinterpret_cast<volatile uint32_t*>(BB_IN_ADDR) != 0;
+		return InBitBang::get();
 	}
 
 	inline bool static get_out()
 	{
-		return *reinterpret_cast<volatile uint32_t*>(BB_OUT_ADDR) != 0;
+		return OutBitBang::get();
 	}
 
 private:
@@ -166,10 +181,11 @@ private:
 		BASE_ADDR   = Port::BASE_ADDR,
 		CONF_ADR    = BASE_ADDR + ((PinIndex < 8) ? offsetof(GPIO_TypeDef, CRL) : offsetof(GPIO_TypeDef, CRH)),
 		IDR_ADDR    = BASE_ADDR + offsetof(GPIO_TypeDef, IDR),
-		ODR_ADDR    = BASE_ADDR + offsetof(GPIO_TypeDef, ODR),
-		BB_IN_ADDR  = BitBandPeriph<IDR_ADDR, PinIndex>::result,
-		BB_OUT_ADDR = BitBandPeriph<ODR_ADDR, PinIndex>::result
+		ODR_ADDR    = BASE_ADDR + offsetof(GPIO_TypeDef, ODR)
 	};
+
+	typedef BitBandPeriph<IDR_ADDR, PinIndex> InBitBang;
+	typedef BitBandPeriph<ODR_ADDR, PinIndex> OutBitBang;
 };
 
 
