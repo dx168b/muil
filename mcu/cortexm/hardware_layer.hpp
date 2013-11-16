@@ -6,6 +6,9 @@
 
 namespace hl {
 
+// fwd.
+template <unsigned SysFreq> class Delay;
+
 /****[ Bit Banding ]***********************************************************/
 
 template <unsigned Addrress, unsigned Bit>
@@ -239,7 +242,8 @@ template <
 	typename DataType,
 	SPI_CPHA CPHA,
 	SPI_CPOL CPOL,
-	unsigned Delay,
+	unsigned SysFreq,
+	unsigned DelayValueUC,
 	typename MOSIPin,
 	typename MISOPin,
 	typename SCKPin,
@@ -291,19 +295,22 @@ private:
 		static void On() { SCK::off(); }
 		static void Off() { SCK::on(); }
 	};
+
+	typedef Delay<SysFreq> DelayUtil;
 };
 
 template <
 	typename DataType,
 	SPI_CPHA CPHA,
 	SPI_CPOL CPOL,
-	unsigned Delay,
+	unsigned SysFreq,
+	unsigned DelayValueUC,
 	typename MOSIPin,
 	typename MISOPin,
 	typename SCKPin,
 	typename CSPin
 >
-DataType SoftwareSPI<DataType, CPHA, CPOL, Delay, MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(DataType value)
+DataType SoftwareSPI<DataType, CPHA, CPOL, SysFreq, DelayValueUC, MOSIPin, MISOPin, SCKPin, CSPin>::write_and_read(DataType value)
 {
 	DataType result = 0;
 	CSPin::off();
@@ -312,11 +319,11 @@ DataType SoftwareSPI<DataType, CPHA, CPOL, Delay, MOSIPin, MISOPin, SCKPin, CSPi
 	{
 		if (value & test_bit) MOSIPin::on();
 		else MOSIPin::off();
-		for (volatile unsigned i = 0; i < Delay; i++);
+		DelayUtil::exec_us(DelayValueUC);
 		value <<= 1;
 		CPOL_Helper<SCKPin, CPOL>::On();
 		result <<= 1;
-		for (volatile unsigned i = 0; i < Delay; i++);
+		DelayUtil::exec_us(DelayValueUC);
 		if (MISOPin::get_in()) result |= 1;
 		CPOL_Helper<SCKPin, CPOL>::Off();
 	}
@@ -454,18 +461,18 @@ template <unsigned SysFreq>
 class Delay
 {
 public:
-	static void exec_ms(uint32_t value)
+	inline static void exec_ms(uint32_t value)
 	{
-		wait(value * (SysFreq/1000));
+		exec_ticks(value * (SysFreq/1000));
 	}
 
-	static void exec_us(uint32_t value)
+	inline static void exec_us(uint32_t value)
 	{
-		wait(value * (SysFreq/1000000));
+		exec_ticks(value * (SysFreq/1000000));
 	}
 
 private:
-	static void wait(uint32_t ticks)
+	inline static void exec_ticks(uint32_t ticks)
 	{
 		int32_t stop = DWTCounter::get()+ticks;
 		while ((int32_t)(DWTCounter::get()-stop) < 0) {}
