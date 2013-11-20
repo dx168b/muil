@@ -1,8 +1,11 @@
 #ifndef HARDWARE_LAYER_HPP_FILE_INCLUDED
 #define HARDWARE_LAYER_HPP_FILE_INCLUDED
 
-#include "stm32f10x.h"
+/* Include this file in your source after any stm32f**x.h files included */
+
 #include <stddef.h>
+
+#define ADDR_TO_UINT32(ADR) *reinterpret_cast<volatile uint32_t*>(ADR)
 
 namespace hl {
 
@@ -20,17 +23,17 @@ struct BitBandPeriph
 
 	inline static bool get()
 	{
-		return *reinterpret_cast<volatile uint32_t*>(addr) != 0;
+		return ADDR_TO_UINT32(addr) != 0;
 	}
 
 	inline static void on()
 	{
-		*reinterpret_cast<volatile uint32_t*>(addr) = 1;
+		ADDR_TO_UINT32(addr) = 1;
 	}
 
 	inline static void off()
 	{
-		*reinterpret_cast<volatile uint32_t*>(addr) = 0;
+		ADDR_TO_UINT32(addr) = 0;
 	}
 };
 
@@ -42,14 +45,14 @@ class DWTCounter
 public:
 	static void enable()
 	{
-		*reinterpret_cast<volatile uint32_t*>(SCB_DEMCR)  |= 0x01000000;
-		*reinterpret_cast<volatile uint32_t*>(DWT_CYCCNT)  = 0;
-		*reinterpret_cast<volatile uint32_t*>(DWT_CONTROL) |= 1;
+		ADDR_TO_UINT32(SCB_DEMCR)  |= 0x01000000;
+		ADDR_TO_UINT32(DWT_CYCCNT)  = 0;
+		ADDR_TO_UINT32(DWT_CONTROL) |= 1;
 	}
 
 	inline static uint32_t get()
 	{
-		return *reinterpret_cast<volatile uint32_t*>(DWT_CYCCNT);
+		return ADDR_TO_UINT32(DWT_CYCCNT);
 	}
 
 private:
@@ -64,6 +67,12 @@ private:
 
 /****[ GPIO ]******************************************************************/
 
+#ifdef __STM32F10X_STDPERIPH_VERSION
+#define STM32_GPIO_V1 1
+#else
+#define STM32_GPIO_V2 1
+#endif
+
 namespace detailed
 {
 	template <char Name> struct PortHelper;
@@ -72,7 +81,12 @@ namespace detailed
 	{
 		enum {
 			BASE_ADDR = GPIOA_BASE,
-			ENABLE_BIT = RCC_APB2ENR_IOPAEN
+#ifdef STM32_GPIO_V1
+			ENABLE_BIT = RCC_APB2ENR_IOPAEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOAEN,
+#endif
 		};
 	};
 
@@ -80,7 +94,12 @@ namespace detailed
 	{
 		enum {
 			BASE_ADDR = GPIOB_BASE,
-			ENABLE_BIT = RCC_APB2ENR_IOPBEN
+#ifdef STM32_GPIO_V1
+			ENABLE_BIT = RCC_APB2ENR_IOPBEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOBEN,
+#endif
 		};
 	};
 
@@ -88,7 +107,12 @@ namespace detailed
 	{
 		enum {
 			BASE_ADDR = GPIOC_BASE,
-			ENABLE_BIT = RCC_APB2ENR_IOPCEN
+#ifdef STM32_GPIO_V1
+			ENABLE_BIT = RCC_APB2ENR_IOPCEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOCEN,
+#endif
 		};
 	};
 
@@ -96,7 +120,51 @@ namespace detailed
 	{
 		enum {
 			BASE_ADDR = GPIOD_BASE,
-			ENABLE_BIT = RCC_APB2ENR_IOPDEN
+#if defined(STM32_GPIO_V1) && defined(RCC_APB2ENR_IOPDAEN)
+			ENABLE_BIT = RCC_APB2ENR_IOPDAEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIODEN,
+#endif
+		};
+	};
+
+	template <> struct PortHelper<'E'>
+	{
+		enum {
+			BASE_ADDR = GPIOE_BASE,
+#if defined(STM32_GPIO_V1) && defined(RCC_APB2ENR_IOPEEN)
+			ENABLE_BIT = RCC_APB2ENR_IOPEEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOEEN,
+#endif
+		};
+	};
+
+	template <> struct PortHelper<'F'>
+	{
+		enum {
+			BASE_ADDR = GPIOF_BASE,
+#if defined(STM32_GPIO_V1) && defined(RCC_APB2ENR_IOPFEN)
+			ENABLE_BIT = RCC_APB2ENR_IOPFEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOFEN,
+#endif
+		};
+	};
+
+	template <> struct PortHelper<'G'>
+	{
+		enum {
+			BASE_ADDR = GPIOG_BASE,
+#if defined(STM32_GPIO_V1) && defined(RCC_APB2ENR_IOPGEN)
+			ENABLE_BIT = RCC_APB2ENR_IOPGEN,
+#endif
+#ifdef STM32_GPIO_V2
+			ENABLE_BIT = RCC_AHB1ENR_GPIOGEN,
+#endif
 		};
 	};
 }
@@ -106,15 +174,22 @@ struct Port
 {
 	inline static void enable()
 	{
-		RCC->APB2ENR |= detailed::PortHelper<Name>::ENABLE_BIT;
+		ADDR_TO_UINT32(RCC_APBENR) |= detailed::PortHelper<Name>::ENABLE_BIT;
 	}
 
 	inline static void disable()
 	{
-		RCC->APB2ENR &= ~detailed::PortHelper<Name>::ENABLE_BIT;
+		ADDR_TO_UINT32(RCC_APBENR) &= ~detailed::PortHelper<Name>::ENABLE_BIT;
 	}
 
-	enum {
+	enum
+	{
+#ifdef STM32_GPIO_V1
+		RCC_APBENR = RCC_BASE+offsetof(RCC_TypeDef, APB2ENR),
+#endif
+#ifdef STM32_GPIO_V2
+		RCC_APBENR = RCC_BASE+offsetof(RCC_TypeDef, AHB1ENR),
+#endif
 		BASE_ADDR = detailed::PortHelper<Name>::BASE_ADDR
 	};
 };
@@ -123,40 +198,73 @@ typedef Port<'A'> PA;
 typedef Port<'B'> PB;
 typedef Port<'C'> PC;
 typedef Port<'D'> PD;
+typedef Port<'E'> PE;
+typedef Port<'F'> PF;
+typedef Port<'G'> PG;
 
-#define	MAKE_PIN_CFG(MODE, CNF)	( (MODE) | (CNF)<<2 )
-enum Mode
+enum OutputType
 {
-	ANALOGINPUT = 			MAKE_PIN_CFG ( 0, 0 ),
-	INPUT =					MAKE_PIN_CFG ( 0, 1 ),
-	INPUTPULLED =			MAKE_PIN_CFG ( 0, 2 ),
-
-	OUTPUT_10MHZ =			MAKE_PIN_CFG ( 1, 0 ),
-	OUTPUT_OD_10MHZ =		MAKE_PIN_CFG ( 1, 1 ),
-	ALT_OUTPUT_10MHZ =		MAKE_PIN_CFG ( 1, 2 ),
-	ALT_OUTPUT_OD_10MHZ =	MAKE_PIN_CFG ( 1, 3 ),
-
-	OUTPUT_2MHZ =			MAKE_PIN_CFG ( 2, 0 ),
-	OUTPUT_OD_2MHZ =		MAKE_PIN_CFG ( 2, 1 ),
-	ALT_OUTPUT_2MHZ =		MAKE_PIN_CFG ( 2, 2 ),
-	ALT_OUTPUT_OD_2MHZ =	MAKE_PIN_CFG ( 2, 3 ),
-
-	OUTPUT =				MAKE_PIN_CFG ( 3, 0 ),
-	OUTPUT_OD =				MAKE_PIN_CFG ( 3, 1 ),
-	ALT_OUTPUT =			MAKE_PIN_CFG ( 3, 2 ),
-	ALT_OUTPUT_OD =			MAKE_PIN_CFG ( 3, 3 )
+	OT_PULL_PUSH      = 0x0,
+	OT_OPEN_DRAIN     = 0x1,
+	OT_ALT_PULL_PUSH  = 0x2,
+	OT_ALT_OPEN_DRAIN = 0x3,
 };
-#undef MAKE_PIN_CFG
+
+enum OutputSpeed
+{
+	OS_LOW     = 0,
+	OS_QUARTER = 1,
+	OS_HALF    = 2,
+	OS_FULL    = 3,
+};
+
+enum InputType
+{
+	IT_ANALOG    = 0,
+	IT_DIGITAl   = 1,
+	IT_PULL_DOWN = 2,
+	IT_PULL_UP   = 3,
+};
 
 template <class Port, unsigned PinIndex>
 class Pin
 {
 public:
-	inline static void configure(Mode mode)
+	template<OutputType TYPE, OutputSpeed SPEED>
+	inline static void configure_output()
 	{
-		enum { SHIFT = (PinIndex % 8) << 2 };
-		*reinterpret_cast<volatile uint32_t*>(CONF_ADR) =
-				(*reinterpret_cast<uint32_t*>(CONF_ADR) & ~(0x0F<<SHIFT)) | (mode<<SHIFT);
+#ifdef STM32_GPIO_V1
+		enum { VALUE = (SPEED << SHIFT) | (TYPE << (SHIFT+2)) };
+		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK)) | VALUE;
+#endif
+#ifdef STM32_GPIO_V2
+		enum { MODER_VAL = (TYPE == OT_ALT_PULL_PUSH) || (TYPE == OT_ALT_OPEN_DRAIN) ? 0x2 : 0x1 };
+		enum { OTYPER_VAL = (TYPE == OT_OPEN_DRAIN) || (TYPE == OT_ALT_OPEN_DRAIN) ? 0x1 : 0x0 };
+		ADDR_TO_UINT32(MODER)   = (ADDR_TO_UINT32(MODER)   & (~PAIR_MASK)) | (MODER_VAL  << SHIFT2);
+		ADDR_TO_UINT32(OTYPER)  = (ADDR_TO_UINT32(OTYPER)  & (~BIT_MASK))  | (OTYPER_VAL << SHIFT1);
+		ADDR_TO_UINT32(OSPEEDR) = (ADDR_TO_UINT32(OSPEEDR) & (~PAIR_MASK)) | (SPEED      << SHIFT2);
+#endif
+	}
+
+	template<InputType IT>
+	inline static void configure_input()
+	{
+#ifdef STM32_GPIO_V1
+		enum { CNF = (IT == IT_ANALOG) ? 0 : (IT == IT_DIGITAl) ? 1 : 2 };
+		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK)) | (CNF << (SHIFT+2));
+		switch (IT)
+		{
+		case IT_PULL_UP:   on(); break;
+		case IT_PULL_DOWN: off(); break;
+		default:           break;
+		}
+#endif
+#ifdef STM32_GPIO_V2
+		enum { MODER_VAL = (IT == IT_ANALOG) ? 0x3 : 0x0 };
+		enum { PUD_VAL = (IT == IT_PULL_DOWN) ? 0x2 : (IT == IT_PULL_UP) ? 0x1 : 0 };
+		ADDR_TO_UINT32(MODER) = (ADDR_TO_UINT32(MODER) & (~PAIR_MASK)) | (MODER_VAL << SHIFT2);
+		ADDR_TO_UINT32(PUPDR) = (ADDR_TO_UINT32(PUPDR) & (~PAIR_MASK)) | (PUD_VAL   << SHIFT2);
+#endif
 	}
 
 	inline static void on()
@@ -167,6 +275,12 @@ public:
 	inline static void off()
 	{
 		OutBitBang::off();
+	}
+
+	inline static void set_out(bool value)
+	{
+		if (value) on();
+		else off();
 	}
 
 	inline static bool get_in()
@@ -181,10 +295,24 @@ public:
 
 private:
 	enum {
-		BASE_ADDR   = Port::BASE_ADDR,
-		CONF_ADR    = BASE_ADDR + ((PinIndex < 8) ? offsetof(GPIO_TypeDef, CRL) : offsetof(GPIO_TypeDef, CRH)),
-		IDR_ADDR    = BASE_ADDR + offsetof(GPIO_TypeDef, IDR),
-		ODR_ADDR    = BASE_ADDR + offsetof(GPIO_TypeDef, ODR)
+		BASE_ADDR = Port::BASE_ADDR,
+		IDR_ADDR  = BASE_ADDR + offsetof(GPIO_TypeDef, IDR),
+		ODR_ADDR  = BASE_ADDR + offsetof(GPIO_TypeDef, ODR),
+#ifdef STM32_GPIO_V1
+		CONF_ADR  = BASE_ADDR + ((PinIndex < 8) ? offsetof(GPIO_TypeDef, CRL) : offsetof(GPIO_TypeDef, CRH)),
+		SHIFT     = (PinIndex % 8) * 4,
+		MASK      = 0xF << SHIFT
+#endif
+#ifdef STM32_GPIO_V2
+		MODER     = BASE_ADDR + offsetof(GPIO_TypeDef, MODER),
+		OSPEEDR   = BASE_ADDR + offsetof(GPIO_TypeDef, OSPEEDR),
+		OTYPER    = BASE_ADDR + offsetof(GPIO_TypeDef, OTYPER),
+		PUPDR     = BASE_ADDR + offsetof(GPIO_TypeDef, PUPDR),
+		SHIFT1    = PinIndex,
+		SHIFT2    = PinIndex * 2,
+		BIT_MASK  = 0x1 << SHIFT1,
+		PAIR_MASK = 0x3 << SHIFT2,
+#endif
 	};
 
 	typedef BitBandPeriph<IDR_ADDR, PinIndex> InBitBang;
@@ -235,7 +363,9 @@ class EmptyCSPin
 public:
 	static void on() {}
 	static void off() {}
-	static void configure(...) {}
+
+	template<OutputType TYPE, OutputSpeed SPEED>
+	static void configure_output() {}
 };
 
 template <
@@ -254,13 +384,12 @@ class SoftwareSPI
 public:
 	static void init()
 	{
-		MOSIPin::configure(OUTPUT);
+		MOSIPin::template configure_output<OT_PULL_PUSH, OS_FULL>();
 		MOSIPin::off();
-		MISOPin::configure(INPUTPULLED);
-		MISOPin::on();
-		SCKPin::configure(OUTPUT);
+		MISOPin::template configure_input<IT_PULL_UP>();
+		SCKPin::template configure_output<OT_PULL_PUSH, OS_FULL>();
 		CPOL_Helper<SCKPin, CPOL>::Off();
-		CSPin::configure(OUTPUT);
+		CSPin::template configure_output<OT_PULL_PUSH, OS_FULL>();
 		CSPin::on();
 	}
 
@@ -384,10 +513,9 @@ public:
 		static const uint16_t SPI_Mode_Master = SPI_CR1_MSTR | SPI_CR1_SSI;
 
 		// initialize pins
-		Helper::MISO_Pin::configure(INPUTPULLED);
-		Helper::MISO_Pin::on();
-		Helper::MOSI_Pin::configure(ALT_OUTPUT);
-		Helper::SCK_Pin::configure(ALT_OUTPUT);
+		Helper::MISO_Pin::template configure_input<IT_DIGITAl>();
+		Helper::MOSI_Pin::template configure_output<OT_ALT_PULL_PUSH, OS_FULL>();
+		Helper::SCK_Pin::template configure_output<OT_ALT_PULL_PUSH, OS_FULL>();
 
 		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
 
@@ -398,7 +526,7 @@ public:
 		// Configure CS output
 		if (cs_mode == CS_Hard)
 		{
-			Helper::CS_Pin::configure(ALT_OUTPUT);
+			Helper::CS_Pin::template configure_output<OT_ALT_PULL_PUSH, OS_FULL>();
 			addr->CR2 |= SPI_CR2_SSOE;
 		}
 		else addr->CR2 &= ~SPI_CR2_SSOE;
@@ -412,7 +540,7 @@ public:
 		SPI_TypeDef * const addr = (SPI_TypeDef*)Helper::SPI_Mem_Addr;
 
 		while (!(addr->SR & SPI_SR_TXE)) {}
-		volatile uint8_t tmp = addr->DR;
+		addr->DR; // read but not store
 		addr->DR = value;
 		while (!(addr->SR & SPI_SR_RXNE)) {}
 		return addr->DR;
@@ -442,12 +570,12 @@ public:
 
 	static void enable()
 	{
-		*reinterpret_cast<volatile uint32_t*>(Helper::RCC_ABP_Addr) |= Helper::RCC_ABP_Mask;
+		ADDR_TO_UINT32(Helper::RCC_ABP_Addr) |= Helper::RCC_ABP_Mask;
 	}
 
 	static void disable()
 	{
-		*reinterpret_cast<volatile uint32_t*>(Helper::RCC_ABP_Addr) &= ~Helper::RCC_ABP_Mask;
+		ADDR_TO_UINT32(Helper::RCC_ABP_Addr) &= ~Helper::RCC_ABP_Mask;
 	}
 
 private:
