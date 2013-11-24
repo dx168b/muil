@@ -26,6 +26,7 @@
 =============================================================================*/
 
 #include "muil_common.hpp"
+#include "muil_widgets.hpp"
 
 namespace muil {
 
@@ -72,45 +73,6 @@ static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
 	}
 
 	return true;
-}
-
-static void paint_button(
-	FormPaintData &paint_data,
-	const         Rect &rect,
-	const Color   &bg_color,
-	bool          pressed,
-	bool          shadow,
-	bool          vert_gradient = true)
-{
-	const Color bg_color1 = bg_color.light(pressed ? -32 : 0);
-	const Color bg_color2 = bg_color.light(pressed ? 32 : 64);
-
-	if (vert_gradient)
-	{
-		int16_t my = rect.y1 + rect.height() / 4;
-		const Rect intern_rect1(rect.x1+1, rect.y1+1, rect.x2-1, my);
-		const Rect intern_rect2(rect.x1+1, my+1, rect.x2-1, rect.y2-1);
-		display_draw_vertical_gradient(intern_rect1, bg_color1, bg_color2);
-		display_draw_vertical_gradient(intern_rect2, bg_color2, bg_color1);
-	}
-	else
-	{
-		int16_t mx = rect.x1 + rect.width() / 4;
-		const Rect intern_rect1(rect.x1+1, rect.y1+1, mx, rect.y2-1);
-		const Rect intern_rect2(mx+1, rect.y1+1, rect.x2, rect.y2-1);
-		display_draw_horizontal_gradient(intern_rect1, bg_color1, bg_color2);
-		display_draw_horizontal_gradient(intern_rect2, bg_color2, bg_color1);
-	}
-
-	if (shadow)
-	{
-		const Color form_bg = paint_data.colors->form_bg;
-		const Color sh_clr1 = pressed ? form_bg : form_bg.light(-10);
-		const Color sh_clr2 = pressed ? form_bg : form_bg.light(-40);
-		display_draw_rect(rect.inflated(2), 2, sh_clr1);
-		display_draw_rect(rect.inflated(1), 2, sh_clr2);
-	}
-	display_draw_rect(rect, 2, paint_data.colors->ctrl_border);
 }
 
 static void paint_tirangle(
@@ -324,7 +286,7 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	Rect rect(Point(0, 0), widget_pd.size);
-	paint_button(paint_data, rect, widget_pd.color, flags_.get(FLAG_PRESSED), true);
+	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
 	display_paint_text_in_rect(
 		rect,
 		HA_CENTER,
@@ -345,7 +307,7 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 {
 	const Size& widget_size = widget_pd.size;
 	Rect check_rect(0, 0, widget_size.height, widget_size.height);
-	paint_button(paint_data, check_rect, widget_pd.color, flags_.get(FLAG_PRESSED), true);
+	draw_button(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
@@ -396,20 +358,16 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, widget_pd.size.height);
 	display_fill_rect(value_rect, widget_pd.color);
 
-	paint_button(
-		paint_data,
+	draw_button(
 		up_btn_rect.inflated(1),
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_UP_BTN_PRESSED),
-		false
+		flags_.get(FLAG_UP_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
 
-	paint_button(
-		paint_data,
+	draw_button(
 		down_btn_rect.inflated(1),
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_DOWN_BTN_PRESSED),
-		false
+		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
 
 	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 7;
@@ -519,12 +477,10 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 		);
 	}
 
-	paint_button(
-		paint_data,
+	draw_button(
 		btn_rect.inflated(1),
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_PRESSED),
-		true
+		flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
 	paint_tirangle(paint_data, layer, btn_rect, false);
@@ -556,7 +512,7 @@ static const FormColors default_colors = {
 	Color::black(),
 	Color(210, 210, 210),
 	Color::black(),
-	Color(160, 180, 230),
+	Color(190, 190, 205),
 	Color::white(),
 	Color::black(),
 	Color::black(),
@@ -813,13 +769,10 @@ void StringSelectorForm::paint_client_area(
 			sb_color
 		);
 
-		paint_button(
-			paint_data,
+		draw_button(
 			data.scr_bar_handle,
 			paint_data.colors->btn_bg,
-			scroll_drag_start_y_ != -1,
-			false,
-			false
+			scroll_drag_start_y_ != -1 ? BS_PRESSED : BS_NORMAL
 		);
 	}
 }
