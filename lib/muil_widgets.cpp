@@ -79,41 +79,47 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 void paint_bitmapped_widget(
 	const Rect &rect,
 	Color color,
-	const MonochromeBitmap &bmp_lt,
-	const MonochromeBitmap &bmp_t,
-	const MonochromeBitmap &bmp_rt,
-	const MonochromeBitmap &bmp_l,
-	const MonochromeBitmap &bmp_c,
-	const MonochromeBitmap &bmp_r,
-	const MonochromeBitmap &bmp_lb,
-	const MonochromeBitmap &bmp_b,
-	const MonochromeBitmap &bmp_rb)
+	const uint8_t *bmp_lt,
+	const uint8_t *bmp_t,
+	const uint8_t *bmp_rt,
+	const uint8_t *bmp_l,
+	const uint8_t *bmp_c,
+	const uint8_t *bmp_r,
+	const uint8_t *bmp_lb,
+	const uint8_t *bmp_b,
+	const uint8_t *bmp_rb,
+	int width_l,
+	int width_c,
+	int width_r,
+	int height_t,
+	int height_c,
+	int height_b)
 {
 	int x1 = rect.x1;
-	int x2 = rect.x1+bmp_l.width-1;
-	int x5 = rect.x2-(bmp_r.width-1);
+	int x2 = rect.x1+width_l-1;
+	int x5 = rect.x2-(width_r-1);
 	int x6 = rect.x2;
 	int x3 = x2+1;
 	int x4 = x5-1;
 
 	int y1 = rect.y1;
-	int y2 = rect.y1+bmp_t.height-1;
-	int y5 = rect.y2-(bmp_b.height-1);
+	int y2 = rect.y1+height_t-1;
+	int y5 = rect.y2-(height_b-1);
 	int y6 = rect.y2;
 	int y3 = y2+1;
 	int y4 = y5-1;
 
-	paint_colored_bitmap(x1, y1, x2, y2, color, bmp_lt.data, bmp_lt.width, bmp_lt.height);
-	paint_colored_bitmap(x3, y1, x4, y2, color, bmp_t.data, bmp_t.width, bmp_t.height);
-	paint_colored_bitmap(x5, y1, x6, y2, color, bmp_rt.data, bmp_rt.width, bmp_rt.height);
+	paint_colored_bitmap(x1, y1, x2, y2, color, bmp_lt, width_l, height_t);
+	paint_colored_bitmap(x3, y1, x4, y2, color, bmp_t, width_c, height_t);
+	paint_colored_bitmap(x5, y1, x6, y2, color, bmp_rt, width_r, height_t);
 
-	paint_colored_bitmap(x1, y3, x2, y4, color, bmp_l.data, bmp_l.width, bmp_l.height);
-	paint_colored_bitmap(x3, y3, x4, y4, color, bmp_c.data, bmp_c.width, bmp_c.height);
-	paint_colored_bitmap(x5, y3, x6, y4, color, bmp_r.data, bmp_r.width, bmp_r.height);
+	paint_colored_bitmap(x1, y3, x2, y4, color, bmp_l, width_l, height_c);
+	paint_colored_bitmap(x3, y3, x4, y4, color, bmp_c, width_c, height_c);
+	paint_colored_bitmap(x5, y3, x6, y4, color, bmp_r, width_r, height_c);
 
-	paint_colored_bitmap(x1, y5, x2, y6, color, bmp_lb.data, bmp_lb.width, bmp_lb.height);
-	paint_colored_bitmap(x3, y5, x4, y6, color, bmp_b.data, bmp_b.width, bmp_b.height);
-	paint_colored_bitmap(x5, y5, x6, y6, color, bmp_rb.data, bmp_rb.width, bmp_rb.height);
+	paint_colored_bitmap(x1, y5, x2, y6, color, bmp_lb, width_l, height_b);
+	paint_colored_bitmap(x3, y5, x4, y6, color, bmp_b, width_c, height_b);
+	paint_colored_bitmap(x5, y5, x6, y6, color, bmp_rb, width_r, height_b);
 }
 
 
