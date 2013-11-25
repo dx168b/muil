@@ -28,6 +28,8 @@
 #ifndef ADS7843_HPP_FILE_INCLUDED_
 #define ADS7843_HPP_FILE_INCLUDED_
 
+#include <cstddef>
+
 #include "../muil_classes.hpp"
 #include "../muil_utils.hpp"
 

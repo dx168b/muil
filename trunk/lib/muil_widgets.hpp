@@ -9,21 +9,27 @@ struct MonochromeBitmap
 {
 	uint8_t width;
 	uint8_t height;
-	uint8_t data[];
+	const uint8_t *data;
 };
 
 void paint_bitmapped_widget(
 	const Rect &rect,
 	Color color,
-	const MonochromeBitmap &bmp_lt,
-	const MonochromeBitmap &bmp_t,
-	const MonochromeBitmap &bmp_rt,
-	const MonochromeBitmap &bmp_l,
-	const MonochromeBitmap &bmp_c,
-	const MonochromeBitmap &bmp_r,
-	const MonochromeBitmap &bmp_lb,
-	const MonochromeBitmap &bmp_b,
-	const MonochromeBitmap &bmp_rb
+	const uint8_t *bmp_lt,
+	const uint8_t *bmp_t,
+	const uint8_t *bmp_rt,
+	const uint8_t *bmp_l,
+	const uint8_t *bmp_c,
+	const uint8_t *bmp_r,
+	const uint8_t *bmp_lb,
+	const uint8_t *bmp_b,
+	const uint8_t *bmp_rb,
+	int width_l,
+	int width_c,
+	int width_r,
+	int height_t,
+	int height_c,
+	int height_b
 );
 
 
