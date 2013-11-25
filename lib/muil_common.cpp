@@ -307,7 +307,7 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 {
 	const Size& widget_size = widget_pd.size;
 	Rect check_rect(0, 0, widget_size.height, widget_size.height);
-	draw_button(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
+	draw_indented_rect(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
@@ -355,17 +355,17 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 
 	get_buttons_rects(widget_pd.size, up_btn_rect, down_btn_rect);
 
-	const Rect value_rect = Rect(0, 0, up_btn_rect.x1, widget_pd.size.height);
+	const Rect value_rect = Rect(Point(0, 0), widget_pd.size);
 	display_fill_rect(value_rect, widget_pd.color);
 
 	draw_button(
-		up_btn_rect.inflated(1),
+		up_btn_rect,
 		paint_data.colors->btn_bg,
 		flags_.get(FLAG_UP_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
 
 	draw_button(
-		down_btn_rect.inflated(1),
+		down_btn_rect,
 		paint_data.colors->btn_bg,
 		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
@@ -379,7 +379,7 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	wchar_t text_buf[10] = {0};
 	print_number(text_buf, 10, value_, dec_pt_);
 	display_paint_text_in_rect(
-		value_rect,
+		Rect(0, 0, up_btn_rect.x1, widget_pd.size.height),
 		HA_CENTER,
 		text_buf,
 		paint_data.font,
@@ -397,8 +397,8 @@ void UpDownWidget::get_buttons_rects(const Size &size, Rect &up_btn_rect, Rect &
 	uint16_t btn_width = display_get_dpi() / 4;
 	int16_t my = size.height / 2;
 	int16_t x1 = size.width - btn_width;
-	up_btn_rect = Rect(x1, 0, size.width, my);
-	down_btn_rect = Rect(x1, my, size.width, size.height);
+	up_btn_rect = Rect(x1, 1, size.width-1, my);
+	down_btn_rect = Rect(x1, my, size.width-1, size.height-1);
 }
 
 void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size &size, Form *form)
@@ -461,8 +461,8 @@ const wchar_t* ArrayOfStrings::get_item(size_t index) const
 void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
-	Rect btn_rect = Rect(widget_size.width-widget_size.height, 0, widget_size.width, widget_size.height);
-	Rect data_rect = Rect(0, 0, btn_rect.x1, widget_size.height);
+	Rect btn_rect = Rect(widget_size.width-widget_size.height+1, 1, widget_size.width-1, widget_size.height-1);
+	Rect data_rect = Rect(Point(0, 0), widget_size);
 
 	display_fill_rect(data_rect, widget_pd.color);
 	int selection = get_selection();
@@ -478,7 +478,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	}
 
 	draw_button(
-		btn_rect.inflated(1),
+		btn_rect,
 		paint_data.colors->btn_bg,
 		flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
