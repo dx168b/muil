@@ -116,5 +116,81 @@ void win_draw_button(const Rect &rect, Color color, ButtonStyle style)
 	}
 }
 
+static const uint8_t normal_check_lt[] = {
+	0xA0, 0xA0,
+	0xA0, 0x80
+};
+
+static const uint8_t normal_check_t[] = {
+	0xA0,
+	0x80
+};
+
+static const uint8_t normal_check_rt[] = {
+	0xA0, 0xFE,
+	0xC0, 0xFE
+};
+
+static const uint8_t normal_check_l[] = {
+	0xA0, 0x80
+};
+
+static const uint8_t normal_check_c[] = {
+	0xFE,
+};
+
+static const uint8_t preessed_checl_c[] = {
+	0xC0,
+};
+
+static const uint8_t normal_check_r[] = {
+	0xC0, 0xFE
+};
+
+static const uint8_t normal_check_lb[] = {
+	0xA0, 0xC0,
+	0xFE, 0xFE
+};
+
+static const uint8_t normal_check_b[] = {
+	0xC0,
+	0xFE
+};
+
+static const uint8_t normal_check_rb[] = {
+	0xC0, 0xFE,
+	0xFE, 0xFE
+};
+
+
+
+void win_draw_indented_rect(const Rect &rect, Color color, ButtonStyle style)
+{
+	switch (style)
+	{
+		case BS_NORMAL:
+			paint_bitmapped_widget(
+				rect, color,
+				normal_check_lt, normal_check_t, normal_check_rt,
+				normal_check_l,  normal_check_c, normal_check_r,
+				normal_check_lb, normal_check_b, normal_check_rb,
+				2, 1, 2,
+				2, 1, 2
+			);
+			break;
+
+		case BS_PRESSED:
+			paint_bitmapped_widget(
+				rect, color,
+				normal_check_lt, normal_check_t,   normal_check_rt,
+				normal_check_l,  preessed_checl_c, normal_check_r,
+				normal_check_lb, normal_check_b,   normal_check_rb,
+				2, 1, 2,
+				2, 1, 2
+			);
+			break;
+	}
+}
+
 } // namespace muil
 

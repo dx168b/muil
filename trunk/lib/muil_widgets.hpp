@@ -41,6 +41,7 @@ enum ButtonStyle
 };
 
 void draw_button(const Rect &rect, Color color, ButtonStyle style);
+void draw_indented_rect(const Rect &rect, Color color, ButtonStyle style);
 
 } // namespace muil
 
