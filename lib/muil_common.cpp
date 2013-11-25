@@ -307,7 +307,7 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 {
 	const Size& widget_size = widget_pd.size;
 	Rect check_rect(0, 0, widget_size.height, widget_size.height);
-	draw_indented_rect(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
+	draw_checkbox_rect(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
@@ -356,7 +356,8 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	get_buttons_rects(widget_pd.size, up_btn_rect, down_btn_rect);
 
 	const Rect value_rect = Rect(Point(0, 0), widget_pd.size);
-	display_fill_rect(value_rect, widget_pd.color);
+
+	draw_indented_ctrl_rect(value_rect, widget_pd.color, BS_NORMAL);
 
 	draw_button(
 		up_btn_rect,
@@ -370,7 +371,7 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
 	);
 
-	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 7;
+	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 6;
 
 	paint_tirangle(paint_data, layer, up_btn_rect, true);
 
@@ -397,8 +398,9 @@ void UpDownWidget::get_buttons_rects(const Size &size, Rect &up_btn_rect, Rect &
 	uint16_t btn_width = display_get_dpi() / 4;
 	int16_t my = size.height / 2;
 	int16_t x1 = size.width - btn_width;
-	up_btn_rect = Rect(x1, 1, size.width-1, my);
-	down_btn_rect = Rect(x1, my, size.width-1, size.height-1);
+	int border = get_indented_ctrl_border();
+	up_btn_rect = Rect(x1, border, size.width-border, my);
+	down_btn_rect = Rect(x1, my, size.width-border, size.height-border);
 }
 
 void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size &size, Form *form)
@@ -461,10 +463,11 @@ const wchar_t* ArrayOfStrings::get_item(size_t index) const
 void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	const Size& widget_size = widget_pd.size;
-	Rect btn_rect = Rect(widget_size.width-widget_size.height+1, 1, widget_size.width-1, widget_size.height-1);
+	int border = get_indented_ctrl_border();
+	Rect btn_rect = Rect(widget_size.width-widget_size.height+border, border, widget_size.width-border, widget_size.height-border);
 	Rect data_rect = Rect(Point(0, 0), widget_size);
 
-	display_fill_rect(data_rect, widget_pd.color);
+	draw_indented_ctrl_rect(data_rect, widget_pd.color, BS_NORMAL);
 	int selection = get_selection();
 	if (selection != -1)
 	{
