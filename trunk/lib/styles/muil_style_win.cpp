@@ -2,6 +2,11 @@
 
 namespace muil {
 
+int win_get_indented_ctrl_border()
+{
+	return 2;
+}
+
 // Normal button bitmaps
 static const uint8_t normal_btn_lt[] = {
 	0x00, 0x00, 0x00,
@@ -162,9 +167,12 @@ static const uint8_t normal_check_rb[] = {
 	0xFE, 0xFE
 };
 
+void win_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
+{
+	win_draw_indented_ctrl_rect(rect, color, style);
+}
 
-
-void win_draw_indented_rect(const Rect &rect, Color color, ButtonStyle style)
+void win_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle style)
 {
 	switch (style)
 	{
@@ -180,6 +188,7 @@ void win_draw_indented_rect(const Rect &rect, Color color, ButtonStyle style)
 			break;
 
 		case BS_PRESSED:
+		case BS_DISABLED:
 			paint_bitmapped_widget(
 				rect, color,
 				normal_check_lt, normal_check_t,   normal_check_rt,
