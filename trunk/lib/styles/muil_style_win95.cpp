@@ -93,7 +93,7 @@ static const uint8_t pressed_btn_rb[] = {
 };
 
 
-void win95_draw_button(const Rect &rect, Color color, ButtonStyle style)
+void win95_draw_button(const Rect &rect, Color color, ButtonStyle style, bool composite)
 {
 	switch (style)
 	{
