@@ -467,7 +467,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	Rect btn_rect = Rect(widget_size.width-widget_size.height+border, border, widget_size.width-border, widget_size.height-border);
 	Rect data_rect = Rect(Point(0, 0), widget_size);
 
-	draw_indented_ctrl_rect(data_rect, widget_pd.color, BS_NORMAL);
+	draw_choice_rect(data_rect, widget_pd.color, BS_NORMAL);
 	int selection = get_selection();
 	if (selection != -1)
 	{
