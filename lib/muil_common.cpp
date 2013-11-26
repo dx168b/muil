@@ -468,8 +468,8 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	int border = get_indented_ctrl_border();
 	Rect btn_rect = Rect(widget_size.width-widget_size.height+border, border, widget_size.width-border, widget_size.height-border);
 	Rect data_rect = Rect(Point(0, 0), widget_size);
-
-	draw_choice_rect(data_rect, widget_pd.color, BS_NORMAL);
+	ButtonStyle btn_style = flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL;
+	draw_choice_rect(data_rect, widget_pd.color, btn_style);
 	int selection = get_selection();
 	if (selection != -1)
 	{
@@ -481,13 +481,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 			paint_data.colors->form_text
 		);
 	}
-
-	draw_button(
-		btn_rect,
-		paint_data.colors->btn_bg,
-		flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL,
-		true
-	);
+	draw_button(btn_rect, paint_data.colors->btn_bg, btn_style, true);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
 	paint_tirangle(paint_data, layer, btn_rect, false);
 }
