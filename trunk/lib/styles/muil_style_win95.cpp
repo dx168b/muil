@@ -1,8 +1,8 @@
-#include "muil_style_win.hpp"
+#include "muil_style_win95.hpp"
 
 namespace muil {
 
-int win_get_indented_ctrl_border()
+int win95_get_indented_ctrl_border()
 {
 	return 2;
 }
@@ -10,22 +10,22 @@ int win_get_indented_ctrl_border()
 // Normal button bitmaps
 static const uint8_t normal_btn_lt[] = {
 	0x00, 0x00, 0x00,
-	0x00, 0xFF, 0xFF,
-	0x00, 0xFF, 0xC0
+	0x00, 0xFE, 0xFE,
+	0x00, 0xFE, 0xC0
 };
 
 static const uint8_t normal_btn_t[] = {
-	0x00, 0xFF, 0xC0
+	0x00, 0xFE, 0xC0
 };
 
 static const uint8_t normal_btn_rt[] = {
 	0x00, 0x00, 0x00,
-	0xFF, 0x40, 0x00,
+	0xFE, 0x40, 0x00,
 	0x80, 0x40, 0x00
 };
 
 static const uint8_t normal_btn_l[] = {
-	0x00, 0xFF, 0xC0
+	0x00, 0xFE, 0xC0
 };
 
 static const uint8_t normal_btn_c[] = {
@@ -37,7 +37,7 @@ static const uint8_t normal_btn_r[] = {
 };
 
 static const uint8_t normal_btn_lb[] = {
-	0x00, 0xFF, 0x80,
+	0x00, 0xFE, 0x80,
 	0x00, 0x40, 0x40,
 	0x00, 0x00, 0x00
 };
@@ -93,7 +93,7 @@ static const uint8_t pressed_btn_rb[] = {
 };
 
 
-void win_draw_button(const Rect &rect, Color color, ButtonStyle style)
+void win95_draw_button(const Rect &rect, Color color, ButtonStyle style)
 {
 	switch (style)
 	{
@@ -167,12 +167,17 @@ static const uint8_t normal_check_rb[] = {
 	0xFE, 0xFE
 };
 
-void win_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
+void win95_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 {
-	win_draw_indented_ctrl_rect(rect, color, style);
+	win95_draw_indented_ctrl_rect(rect, color, style);
 }
 
-void win_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle style)
+void win95_draw_choice_rect(const Rect &rect, Color color, ButtonStyle style)
+{
+	win95_draw_indented_ctrl_rect(rect, color, style);
+}
+
+void win95_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle style)
 {
 	switch (style)
 	{
