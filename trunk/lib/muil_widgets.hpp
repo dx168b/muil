@@ -40,7 +40,7 @@ enum ButtonStyle
 	BS_DISABLED
 };
 
-void draw_button(const Rect &rect, Color color, ButtonStyle style);
+void draw_button(const Rect &rect, Color color, ButtonStyle style, bool composite);
 void draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style);
 void draw_choice_rect(const Rect &rect, Color color, ButtonStyle style);
 void draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle style);
