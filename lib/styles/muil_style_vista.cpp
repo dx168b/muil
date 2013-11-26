@@ -80,8 +80,9 @@ static const uint8_t vista_normal_btn_rb[] = {
 	0x75, 0x86, 0xff
 };
 
-void vista_draw_button(const Rect &rect, Color color, ButtonStyle style)
+void vista_draw_button(const Rect &rect, Color color, ButtonStyle style, bool composite)
 {
+	if (composite) return;
 	switch (style)
 	{
 		case BS_NORMAL:
@@ -99,7 +100,7 @@ void vista_draw_button(const Rect &rect, Color color, ButtonStyle style)
 
 void vista_draw_choice_rect(const Rect &rect, Color color, ButtonStyle style)
 {
-	vista_draw_button(rect, color, style);
+	vista_draw_button(rect, color, style, false);
 }
 
 
@@ -128,33 +129,33 @@ static const uint8_t vista_normal_chk_l[] = {
 };
 
 static const uint8_t vista_normal_chk_c[] = {
-0xce, 0xd0, 0xd8,
-0xd5, 0xde, 0xe8,
-0xe3, 0xee, 0xf3
+	0xce, 0xd0, 0xd8,
+	0xd5, 0xde, 0xe8,
+	0xe3, 0xee, 0xf3
 };
 
 static const uint8_t vista_normal_chk_r[] = {
-0xc4, 0xf4, 0x8e,
-0xd0, 0xf4, 0x8e,
-0xdf, 0xf4, 0x8e
+	0xc4, 0xf4, 0x8e,
+	0xd0, 0xf4, 0x8e,
+	0xdf, 0xf4, 0x8e
 };
 
 static const uint8_t vista_normal_chk_lb[] = {
-0x8e, 0xf4, 0xca,
-0x8e, 0xf4, 0xf4,
-0x8e, 0x8e, 0x8e
+	0x8e, 0xf4, 0xca,
+	0x8e, 0xf4, 0xf4,
+	0x8e, 0x8e, 0x8e
 };
 
 static const uint8_t vista_normal_chk_b[] = {
-0xd8, 0xe3, 0xeb,
-0xf4, 0xf4, 0xf4,
-0x8e, 0x8e, 0x8e
+	0xd8, 0xe3, 0xeb,
+	0xf4, 0xf4, 0xf4,
+	0x8e, 0x8e, 0x8e
 };
 
 static const uint8_t vista_normal_chk_rb[] = {
-0xe9, 0xf4, 0x8e,
-0xf4, 0xf4, 0x8e,
-0x8e, 0x8e, 0x8e
+	0xe9, 0xf4, 0x8e,
+	0xf4, 0xf4, 0x8e,
+	0x8e, 0x8e, 0x8e
 };
 
 void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
@@ -172,11 +173,60 @@ void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 			);
 			break;
 	}
-
 }
+
+static const uint8_t vista_normal_indented_lt[] = {
+	0xd6, 0xbd,
+	0xe3, 0xeb
+};
+
+static const uint8_t vista_normal_indented_t[] = {
+	0xad,
+	0xfe
+};
+
+static const uint8_t vista_normal_indented_rt[] = {
+	0xbd, 0xd6,
+	0xeb, 0xde
+};
+
+static const uint8_t vista_normal_indented_l[] = {
+	0xe3, 0xfe
+};
+
+static const uint8_t vista_normal_indented_c[] = {
+	0xfe
+};
+
+static const uint8_t vista_normal_indented_r[] = {
+	0xff, 0xde
+};
+
+static const uint8_t vista_normal_indented_lb[] = {
+	0xe3, 0xeb,
+	0xeb, 0xe7
+};
+
+static const uint8_t vista_normal_indented_b[] = {
+	0xfe,
+	0xe7
+};
+
+static const uint8_t vista_normal_indented_rb[] = {
+	0xeb, 0xde,
+	0xe7, 0xeb
+};
 
 void vista_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle style)
 {
+	paint_bitmapped_widget(
+		rect, color,
+		vista_normal_indented_lt, vista_normal_indented_t, vista_normal_indented_rt,
+		vista_normal_indented_l,  vista_normal_indented_c, vista_normal_indented_r,
+		vista_normal_indented_lb, vista_normal_indented_b, vista_normal_indented_rb,
+		2, 1, 2,
+		2, 1, 2
+	);
 
 }
 

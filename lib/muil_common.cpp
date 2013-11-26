@@ -286,7 +286,7 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	Rect rect(Point(0, 0), widget_pd.size);
-	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
+	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL, false);
 	display_paint_text_in_rect(
 		rect,
 		HA_CENTER,
@@ -362,13 +362,15 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	draw_button(
 		up_btn_rect,
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_UP_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
+		flags_.get(FLAG_UP_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL,
+		true
 	);
 
 	draw_button(
 		down_btn_rect,
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL
+		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL,
+		true
 	);
 
 	int16_t layer = (up_btn_rect.width() + up_btn_rect.height()) / 6;
@@ -483,7 +485,8 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	draw_button(
 		btn_rect,
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL
+		flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL,
+		true
 	);
 	int16_t layer = (btn_rect.width() + btn_rect.height()) / 6;
 	paint_tirangle(paint_data, layer, btn_rect, false);
@@ -775,7 +778,8 @@ void StringSelectorForm::paint_client_area(
 		draw_button(
 			data.scr_bar_handle,
 			paint_data.colors->btn_bg,
-			scroll_drag_start_y_ != -1 ? BS_PRESSED : BS_NORMAL
+			scroll_drag_start_y_ != -1 ? BS_PRESSED : BS_NORMAL,
+			false
 		);
 	}
 }
