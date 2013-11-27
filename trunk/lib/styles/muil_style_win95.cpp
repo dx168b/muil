@@ -193,7 +193,6 @@ void win95_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle st
 			break;
 
 		case BS_PRESSED:
-		case BS_DISABLED:
 			paint_bitmapped_widget(
 				rect, color,
 				normal_check_lt, normal_check_t,   normal_check_rt,

@@ -36,8 +36,7 @@ void paint_bitmapped_widget(
 enum ButtonStyle
 {
 	BS_NORMAL,
-	BS_PRESSED,
-	BS_DISABLED
+	BS_PRESSED
 };
 
 void draw_button(const Rect &rect, Color color, ButtonStyle style, bool composite);
