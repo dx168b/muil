@@ -3,6 +3,7 @@
 
 namespace muil {
 
+// normal button
 
 static const uint8_t vista_normal_btn_lt[] = {
 	0xff, 0x90, 0x77,
@@ -79,6 +80,8 @@ static const uint8_t vista_normal_btn_rb[] = {
 	0xe4, 0x8f, 0x88,
 	0x75, 0x86, 0xff
 };
+
+// pressed button
 
 static const uint8_t vista_pressed_btn_lt[] = {
 	0xff, 0x54, 0x58,
@@ -189,6 +192,7 @@ void vista_draw_choice_rect(const Rect &rect, Color color, ButtonStyle style)
 	vista_draw_button(rect, color, style, false);
 }
 
+// normal checkbox
 
 static const uint8_t vista_normal_chk_lt[] = {
 	0x8e, 0x8e, 0x8e,
@@ -244,6 +248,62 @@ static const uint8_t vista_normal_chk_rb[] = {
 	0x8e, 0x8e, 0x8e
 };
 
+// pressed checkbox
+
+static const uint8_t vista_pressed_chk_lt[] = {
+	0x59, 0x59, 0x59,
+	0x59, 0xde, 0xde,
+	0x59, 0xde, 0xa8
+};
+
+static const uint8_t vista_pressed_chk_t[] = {
+	0x59, 0x59, 0x59,
+	0xde, 0xde, 0xde,
+	0xa8, 0xa8, 0xa9
+};
+
+static const uint8_t vista_pressed_chk_rt[] = {
+	0x59, 0x59, 0x59,
+	0xde, 0xde, 0x59,
+	0xae, 0xde, 0x59
+};
+
+static const uint8_t vista_pressed_chk_l[] = {
+	0x59, 0xde, 0xa8,
+	0x59, 0xde, 0xa9,
+	0x59, 0xde, 0xae
+};
+
+static const uint8_t vista_pressed_chk_c[] = {
+	0xcc, 0xcd, 0xd2,
+	0xd1, 0xd6, 0xdd,
+	0xd9, 0xe4, 0xec
+};
+
+static const uint8_t vista_pressed_chk_r[] = {
+	0xb2, 0xde, 0x59,
+	0xbf, 0xde, 0x59,
+	0xd2, 0xde, 0x59
+};
+
+static const uint8_t vista_pressed_chk_lb[] = {
+	0x59, 0xde, 0xb7,
+	0x59, 0xde, 0xde,
+	0x59, 0x59, 0x59
+};
+
+static const uint8_t vista_pressed_chk_b[] = {
+	0xc9, 0xd9, 0xe2,
+	0xde, 0xde, 0xde,
+	0x59, 0x59, 0x59
+};
+
+static const uint8_t vista_pressed_chk_rb[] = {
+	0xe0, 0xde, 0x59,
+	0xde, 0xde, 0x59,
+	0x59, 0x59, 0x59
+};
+
 void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 {
 	switch (style)
@@ -252,14 +312,27 @@ void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 			paint_bitmapped_widget(
 				rect, color,
 				vista_normal_chk_lt, vista_normal_chk_t, vista_normal_chk_rt,
-				vista_normal_chk_l, vista_normal_chk_c, vista_normal_chk_r,
+				vista_normal_chk_l,  vista_normal_chk_c, vista_normal_chk_r,
 				vista_normal_chk_lb, vista_normal_chk_b, vista_normal_chk_rb,
+				3, 3, 3,
+				3, 3, 3
+			);
+			break;
+
+		case BS_PRESSED:
+			paint_bitmapped_widget(
+				rect, color,
+				vista_pressed_chk_lt, vista_pressed_chk_t, vista_pressed_chk_rt,
+				vista_pressed_chk_l,  vista_pressed_chk_c, vista_pressed_chk_r,
+				vista_pressed_chk_lb, vista_pressed_chk_b, vista_pressed_chk_rb,
 				3, 3, 3,
 				3, 3, 3
 			);
 			break;
 	}
 }
+
+// normal indented widget
 
 static const uint8_t vista_normal_indented_lt[] = {
 	0xd6, 0xbd,
