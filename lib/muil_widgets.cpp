@@ -1,4 +1,4 @@
-#include <stddef>
+#include <stddef.h>
 #include "muil_widgets.hpp"
 
 namespace muil {
@@ -23,17 +23,17 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 	bool same_width = (new_width == bmp_width);
 	bool same_height = (new_height == bmp_height);
 
-	int v00, v01, v10, v11;
+	int v00 = 0, v01 = 0, v10 = 0, v11 = 0;
 	int oxPrev = -1, oyPrev = -1;
 	int xcnt_incr = same_width ? bmp_width : bmp_width-1;
 	int ycnt_incr = same_height ? bmp_height : bmp_height-1;
-	int xcnt = same_width ? 0 : xcnt_incr / 2;
-	int ox = 0;
-	for (int x = 0; x < new_width; x++)
+	int ycnt = same_height ? 0 : ycnt_incr/2;
+	int oy = 0;
+	for (int y = 0; y < new_height; y++)
 	{
-		int oy = 0;
-		int ycnt = same_height ? 0 : ycnt_incr/2;
-		for (int y = 0; y < new_height; y++)
+		int xcnt = same_width ? 0 : xcnt_incr / 2;
+		int ox = 0;
+		for (int x = 0; x < new_width; x++)
 		{
 			if ((oxPrev != ox) || (oyPrev != oy))
 			{
@@ -69,13 +69,13 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 			if (v != 255)
 				display_set_point(x+x1, y+y1, color.adjusted(v, color_summ));
 
-			ycnt += ycnt_incr;
-			while (ycnt >= new_height) { oy++; ycnt -= new_height; }
+			xcnt += xcnt_incr;
+			while (xcnt >= new_width) { ox++; xcnt -= new_width; }
 		}
-
-		xcnt += xcnt_incr;
-		while (xcnt >= new_width) { ox++; xcnt -= new_width; }
+		ycnt += ycnt_incr;
+		while (ycnt >= new_height) { oy++; ycnt -= new_height; }
 	}
+
 }
 
 void paint_bitmapped_widget(
