@@ -12,6 +12,12 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 	int new_width = x2-x1+1;
 	int new_height = y2-y1+1;
 
+	if ((bmp_width) == 1 && (bmp_height == 1))
+	{
+		display_fill_rect(x1, y1, x2, y2, color);
+		return;
+	}
+
 	int color_summ = (color.r + color.g + color.b) / 3;
 
 	bool same_width = (new_width == bmp_width);
@@ -59,19 +65,9 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 			if (v > 255) v = 255;
 			if (v < 0) v = 0;
 
-			if (v != 255) // 255 is transparent color
-			{
-				int r = v * color.r / color_summ;
-				int g = v * color.g / color_summ;
-				int b = v * color.b / color_summ;
-				if (r < 0) r = 0;
-				if (r > 255) r = 255;
-				if (g < 0) g = 0;
-				if (g > 255) g = 255;
-				if (b < 0) b = 0;
-				if (b > 255) b = 255;
-				display_set_point(x+x1, y+y1, Color(r, g, b));
-			}
+			// 255 is transparent color
+			if (v != 255)
+				display_set_point(x+x1, y+y1, color.adjusted(v, color_summ));
 
 			ycnt += ycnt_incr;
 			while (ycnt >= new_height) { oy++; ycnt -= new_height; }

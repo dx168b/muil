@@ -50,6 +50,15 @@ Color Color::light(int value) const
 	);
 }
 
+Color Color::adjusted(int multiplier, int divider)
+{
+	return Color(
+		correct_color_value((r * multiplier) / divider),
+		correct_color_value((g * multiplier) / divider),
+		correct_color_value((b * multiplier) / divider)
+	);
+}
+
 Color Color::between(const Color &color1, const Color &color2, int16_t value, int16_t max)
 {
 	return Color(
