@@ -33,6 +33,8 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 	{
 		int xcnt = same_width ? 0 : xcnt_incr / 2;
 		int ox = 0;
+		int sx = -1;
+		int prev_v = -1;
 		for (int x = 0; x < new_width; x++)
 		{
 			if ((oxPrev != ox) || (oyPrev != oy))
@@ -65,17 +67,24 @@ void paint_colored_bitmap(int x1, int y1, int x2, int y2, Color color, const uin
 			if (v > 255) v = 255;
 			if (v < 0) v = 0;
 
-			// 255 is transparent color
-			if (v != 255)
-				display_set_point(x+x1, y+y1, color.adjusted(v, color_summ));
+			if (v != prev_v)
+			{
+				if ((prev_v != 255) && (prev_v != -1))
+					display_fill_rect(sx, y+y1, x+x1-1, y+y1, color.adjusted(prev_v, color_summ));
+				sx = x+x1;
+				prev_v = v;
+			}
 
 			xcnt += xcnt_incr;
 			while (xcnt >= new_width) { ox++; xcnt -= new_width; }
 		}
+
+		if ((prev_v != 255) && (prev_v != -1))
+			display_fill_rect(sx, y+y1, x2, y+y1, color.adjusted(prev_v, color_summ));
+
 		ycnt += ycnt_incr;
 		while (ycnt >= new_height) { oy++; ycnt -= new_height; }
 	}
-
 }
 
 void paint_bitmapped_widget(
