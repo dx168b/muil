@@ -64,7 +64,18 @@ struct Color
 	static Color green() { return Color(0, 255, 0); }
 
 	Color light(int value) const;
+	Color adjusted(int multiplier, int divider);
 	static Color between(const Color &color1, const Color &color2, int16_t value, int16_t max);
+
+	bool operator == (const Color &other) const
+	{
+		return (r == other.r) && (g == other.g) && (b == other.b);
+	}
+
+	bool operator != (const Color &other) const
+	{
+		return !operator == (other);
+	}
 };
 
 struct Size
