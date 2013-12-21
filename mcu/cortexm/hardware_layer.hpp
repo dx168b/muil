@@ -234,8 +234,8 @@ public:
 	inline static void configure_output()
 	{
 #ifdef STM32_GPIO_V1
-		enum { VALUE = (SPEED << SHIFT) | (TYPE << (SHIFT+2)) };
-		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK)) | VALUE;
+		enum { VALUE = (SPEED << SHIFT4) | (TYPE << (SHIFT4+2)) };
+		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK4)) | VALUE;
 #endif
 #ifdef STM32_GPIO_V2
 		enum { MODER_VAL = (TYPE == OT_ALT_PULL_PUSH) || (TYPE == OT_ALT_OPEN_DRAIN) ? 0x2 : 0x1 };
@@ -251,7 +251,7 @@ public:
 	{
 #ifdef STM32_GPIO_V1
 		enum { CNF = (IT == IT_ANALOG) ? 0 : (IT == IT_DIGITAl) ? 1 : 2 };
-		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK)) | (CNF << (SHIFT+2));
+		ADDR_TO_UINT32(CONF_ADR) = (ADDR_TO_UINT32(CONF_ADR) & (~MASK4)) | (CNF << (SHIFT4+2));
 		switch (IT)
 		{
 		case IT_PULL_UP:   on(); break;
@@ -288,9 +288,18 @@ public:
 		return InBitBang::get();
 	}
 
-	inline bool static get_out()
+	inline static bool get_out()
 	{
 		return OutBitBang::get();
+	}
+
+	template <unsigned Fun>
+	inline static void remap()
+	{
+#ifdef STM32_GPIO_V2
+		enum { INDEX = PinIndex >> 0x3, VALUE = Fun << SHIFT4 };
+		ADDR_TO_UINT32(AFR_ADDR+INDEX) = (ADDR_TO_UINT32(AFR_ADDR+INDEX) & (~MASK4)) | VALUE;
+#endif
 	}
 
 private:
@@ -298,16 +307,17 @@ private:
 		BASE_ADDR = Port::BASE_ADDR,
 		IDR_ADDR  = BASE_ADDR + offsetof(GPIO_TypeDef, IDR),
 		ODR_ADDR  = BASE_ADDR + offsetof(GPIO_TypeDef, ODR),
+		SHIFT4    = (PinIndex % 8) * 4,
+		MASK4     = 0xF << SHIFT4,
 #ifdef STM32_GPIO_V1
 		CONF_ADR  = BASE_ADDR + ((PinIndex < 8) ? offsetof(GPIO_TypeDef, CRL) : offsetof(GPIO_TypeDef, CRH)),
-		SHIFT     = (PinIndex % 8) * 4,
-		MASK      = 0xF << SHIFT
 #endif
 #ifdef STM32_GPIO_V2
 		MODER     = BASE_ADDR + offsetof(GPIO_TypeDef, MODER),
 		OSPEEDR   = BASE_ADDR + offsetof(GPIO_TypeDef, OSPEEDR),
 		OTYPER    = BASE_ADDR + offsetof(GPIO_TypeDef, OTYPER),
 		PUPDR     = BASE_ADDR + offsetof(GPIO_TypeDef, PUPDR),
+		AFR_ADDR  = BASE_ADDR + offsetof(GPIO_TypeDef, AFR),
 		SHIFT1    = PinIndex,
 		SHIFT2    = PinIndex * 2,
 		BIT_MASK  = 0x1 << SHIFT1,
@@ -348,14 +358,14 @@ enum SPI_CPOL
 
 enum SPI_BRPrescaler
 {
-	SPI_BaudRatePrescaler_2 = 0x0000,
-	SPI_BaudRatePrescaler_4 = 0x0008,
-	SPI_BaudRatePrescaler_8 = 0x0010,
-	SPI_BaudRatePrescaler_16 = 0x0018,
-	SPI_BaudRatePrescaler_32 = 0x0020,
-	SPI_BaudRatePrescaler_64 = 0x0028,
-	SPI_BaudRatePrescaler_128 = 0x0030,
-	SPI_BaudRatePrescaler_256 = 0x0038
+	SPI_Prescaler_2 = 0x0000,
+	SPI_Prescaler_4 = 0x0008,
+	SPI_Prescaler_8 = 0x0010,
+	SPI_Prescaler_16 = 0x0018,
+	SPI_Prescaler_32 = 0x0020,
+	SPI_Prescaler_64 = 0x0028,
+	SPI_Prescaler_128 = 0x0030,
+	SPI_Prescaler_256 = 0x0038
 };
 
 class EmptyCSPin
@@ -474,10 +484,11 @@ namespace detailed
 			RCC_ABP_Mask = RCC_APB2ENR_SPI1EN
 		};
 
-		typedef Pin<PA, 7> MOSI_Pin;
-		typedef Pin<PA, 6> MISO_Pin;
-		typedef Pin<PA, 5> SCK_Pin;
-		typedef Pin<PA, 4> CS_Pin;
+		typedef PA Port;
+		typedef Pin<Port, 7> MOSI_Pin;
+		typedef Pin<Port, 6> MISO_Pin;
+		typedef Pin<Port, 5> SCK_Pin;
+		typedef Pin<Port, 4> CS_Pin;
 	};
 #endif
 
@@ -491,10 +502,29 @@ namespace detailed
 			RCC_ABP_Mask = RCC_APB1ENR_SPI2EN
 		};
 
-		typedef Pin<PB, 15> MOSI_Pin;
-		typedef Pin<PB, 14> MISO_Pin;
-		typedef Pin<PB, 13> SCK_Pin;
-		typedef Pin<PB, 12> CS_Pin;
+		typedef PB Port;
+		typedef Pin<Port, 15> MOSI_Pin;
+		typedef Pin<Port, 14> MISO_Pin;
+		typedef Pin<Port, 13> SCK_Pin;
+		typedef Pin<Port, 12> CS_Pin;
+	};
+#endif
+
+#ifdef RCC_APB2ENR_SPI5EN
+	template<> struct SPI_Helper<5>
+	{
+		enum
+		{
+			SPI_Mem_Addr = SPI5_BASE,
+			RCC_ABP_Addr = RCC_BASE + offsetof(RCC_TypeDef, APB2ENR),
+			RCC_ABP_Mask = RCC_APB2ENR_SPI5EN
+		};
+
+		typedef PF Port;
+		typedef Pin<Port, 9> MOSI_Pin;
+		typedef Pin<Port, 8> MISO_Pin;
+		typedef Pin<Port, 7> SCK_Pin;
+		typedef Pin<Port, 6> CS_Pin; // ???
 	};
 #endif
 }
@@ -502,7 +532,16 @@ namespace detailed
 template <int N>
 class SPI
 {
+private:
+	typedef detailed::SPI_Helper<N> Helper;
+
 public:
+	typedef typename Helper::Port Port;
+	typedef typename Helper::MISO_Pin MISO_Pin;
+	typedef typename Helper::MOSI_Pin MOSI_Pin;
+	typedef typename Helper::SCK_Pin SCK_Pin;
+	typedef typename Helper::CS_Pin CS_Pin;
+
 	static void init(
 		const SPI_BitsCount   bits_count,
 		const SPI_CSMode      cs_mode,
@@ -577,9 +616,6 @@ public:
 	{
 		ADDR_TO_UINT32(Helper::RCC_ABP_Addr) &= ~Helper::RCC_ABP_Mask;
 	}
-
-private:
-	typedef detailed::SPI_Helper<N> Helper;
 };
 
 

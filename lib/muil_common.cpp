@@ -25,6 +25,8 @@
   Author(s): Denis Artyomov
 =============================================================================*/
 
+#include "muil_display.hpp"
+#include "muil_touchscreen.hpp"
 #include "muil_common.hpp"
 #include "muil_widgets.hpp"
 

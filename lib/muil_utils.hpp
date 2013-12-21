@@ -75,7 +75,9 @@ private:
 	T flags_;
 };
 
+// Delay in milliseconds. Application must realize this function
+void delay_ms(uint16_t milliseconds);
 
-} // end "namespace muil"
+} // namespace muil
 
 #endif
