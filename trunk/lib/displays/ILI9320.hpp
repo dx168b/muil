@@ -29,6 +29,7 @@
 #define ILI9320_HPP_FILE_INCLUDED_
 
 #include "../muil_classes.hpp"
+#include "../muil_utils.hpp"
 
 namespace muil {
 

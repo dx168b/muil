@@ -40,6 +40,7 @@ namespace muil {
 // fwd.
 class Form;
 class WidgetsForm;
+struct FontInfo;
 struct FormTouchScreenEventData;
 struct StringSelectorFormData;
 struct FormPaintData;

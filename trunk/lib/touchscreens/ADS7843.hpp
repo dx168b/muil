@@ -30,6 +30,8 @@
 
 #include <cstddef>
 
+#include "../muil_touchscreen.hpp"
+#include "../muil_display.hpp"
 #include "../muil_classes.hpp"
 #include "../muil_utils.hpp"
 
