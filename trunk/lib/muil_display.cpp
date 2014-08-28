@@ -169,4 +169,25 @@ void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const
 	}
 }
 
+void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color)
+{
+	const uint16_t w8 = (width + 7) / 8;
+	int16_t y = y0;
+	for (; height != 0; height--, y++)
+	{
+		int32_t x = x0;
+		for (uint16_t i = 0; i < w8; i++)
+		{
+			uint8_t value = *data++;
+			for (uint8_t j = 0; j < 8; j++)
+			{
+				if (value & 0x80) display_set_point(x, y, color);
+				x++;
+				value <<= 1;
+			}
+		}
+	}
+}
+
+
 } // namespace muil
