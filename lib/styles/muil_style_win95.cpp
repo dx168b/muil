@@ -97,7 +97,7 @@ void win95_draw_button(const Rect &rect, Color color, ButtonStyle style, bool co
 {
 	switch (style)
 	{
-		case BS_NORMAL:
+	case ButtonStyle::Normal:
 			paint_bitmapped_widget(
 				rect, color,
 				normal_btn_lt, normal_btn_t, normal_btn_rt,
@@ -108,7 +108,7 @@ void win95_draw_button(const Rect &rect, Color color, ButtonStyle style, bool co
 			);
 			break;
 
-		case BS_PRESSED:
+	case ButtonStyle::Pressed:
 			paint_bitmapped_widget(
 				rect, color,
 				pressed_btn_lt, pressed_btn_t, pressed_btn_rt,
@@ -181,7 +181,7 @@ void win95_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle st
 {
 	switch (style)
 	{
-		case BS_NORMAL:
+	case ButtonStyle::Normal:
 			paint_bitmapped_widget(
 				rect, color,
 				normal_check_lt, normal_check_t, normal_check_rt,
@@ -192,7 +192,7 @@ void win95_draw_indented_ctrl_rect(const Rect &rect, Color color, ButtonStyle st
 			);
 			break;
 
-		case BS_PRESSED:
+	case ButtonStyle::Pressed:
 			paint_bitmapped_widget(
 				rect, color,
 				normal_check_lt, normal_check_t,   normal_check_rt,

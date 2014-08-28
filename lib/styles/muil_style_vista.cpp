@@ -163,7 +163,7 @@ void vista_draw_button(const Rect &rect, Color color, ButtonStyle style, bool co
 	if (composite) return;
 	switch (style)
 	{
-		case BS_NORMAL:
+	case ButtonStyle::Normal:
 			paint_bitmapped_widget(
 				rect, color,
 				vista_normal_btn_lt, vista_normal_btn_t, vista_normal_btn_rt,
@@ -174,7 +174,7 @@ void vista_draw_button(const Rect &rect, Color color, ButtonStyle style, bool co
 			);
 			break;
 
-		case BS_PRESSED:
+	case ButtonStyle::Pressed:
 			paint_bitmapped_widget(
 				rect, color,
 				vista_pressed_btn_lt, vista_pressed_btn_t, vista_pressed_btn_rt,
@@ -308,7 +308,7 @@ void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 {
 	switch (style)
 	{
-		case BS_NORMAL:
+	case ButtonStyle::Normal:
 			paint_bitmapped_widget(
 				rect, color,
 				vista_normal_chk_lt, vista_normal_chk_t, vista_normal_chk_rt,
@@ -319,7 +319,7 @@ void vista_draw_checkbox_rect(const Rect &rect, Color color, ButtonStyle style)
 			);
 			break;
 
-		case BS_PRESSED:
+	case ButtonStyle::Pressed:
 			paint_bitmapped_widget(
 				rect, color,
 				vista_pressed_chk_lt, vista_pressed_chk_t, vista_pressed_chk_rt,

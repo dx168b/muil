@@ -121,7 +121,7 @@ public:
 		client_rect_(client_rect),
 		force_repaint_all_widgets_(force_repaint_all_widgets) {}
 
-	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height, const wchar_t *text)
+	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height, const wchar_t *text) override
 	{
 		if (widget.flags_.get(Widget::FLAG_INVALID) || force_repaint_all_widgets_)
 		{
@@ -165,7 +165,7 @@ public:
 		last_pressed_widget_pos_(last_pressed_widget_pos),
 		last_pressed_widget_size_(last_pressed_widget_size) {}
 
-	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height, const wchar_t *text)
+	void visit(Widget &widget, uint8_t x, uint8_t y, uint8_t width, uint8_t height, const wchar_t *text) override
 	{
 		Point pos = translate_rel_coord(x, y, client_rect_);
 		Size size = translate_rel_size(width, height, client_rect_);
@@ -175,7 +175,7 @@ public:
 			const Point widget_pt = Point(pt_.x-rect.x1, pt_.y-rect.y1);
 			widget.touch_screen_event(type_, widget_pt, size, &form_);
 			form_.widget_event(type_, &widget);
-			if (type_ == EVENT_TOUCHSCREEN_DOWN)
+			if (type_ == EventType::TouchscreenDown)
 			{
 				*last_pressed_widget_ = &widget;
 				last_pressed_widget_pos_ = pos;
@@ -206,9 +206,9 @@ void Widget::refresh()
 
 void Label::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
-	HorizAlign horiz_align = HA_LEFT;
-	if (flags_.get(FLAG_ALIGN_RIGHT)) horiz_align = HA_RIGHT;
-	else if (flags_.get(FLAG_ALIGN_CENTER)) horiz_align = HA_CENTER;
+	HorizAlign horiz_align = HorizAlign::Left;
+	if (flags_.get(FLAG_ALIGN_RIGHT)) horiz_align = HorizAlign::Right;
+	else if (flags_.get(FLAG_ALIGN_CENTER)) horiz_align = HorizAlign::Center;
 
 	Rect rect(Point(0, 0), widget_pd.size);
 	display_paint_text_in_rect(
@@ -233,7 +233,7 @@ void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const Widget
 	display_fill_rect(rect, widget_pd.color);
 	display_paint_text_in_rect(
 		rect,
-		HA_CENTER,
+		HorizAlign::Center,
 		get_text(),
 		paint_data.font,
 		paint_data.colors->form_text
@@ -267,12 +267,12 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 {
 	switch (type)
 	{
-	case EVENT_TOUCHSCREEN_DOWN:
+	case EventType::TouchscreenDown:
 		flags_.set(FLAG_PRESSED, true);
 		refresh();
 		break;
 
-	case EVENT_TOUCHSCREEN_UP:
+	case EventType::TouchscreenUp:
 		flags_.set(FLAG_PRESSED, false);
 		refresh();
 		pressed(form);
@@ -288,10 +288,10 @@ void PressibleWidget::touch_screen_event(EventType type, const Point pt, const S
 void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	Rect rect(Point(0, 0), widget_pd.size);
-	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL, false);
+	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal, false);
 	display_paint_text_in_rect(
 		rect,
-		HA_CENTER,
+		HorizAlign::Center,
 		widget_pd.text,
 		paint_data.font,
 		paint_data.colors->form_text
@@ -309,13 +309,13 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 {
 	const Size& widget_size = widget_pd.size;
 	Rect check_rect(0, 0, widget_size.height, widget_size.height);
-	draw_checkbox_rect(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL);
+	draw_checkbox_rect(check_rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal);
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
 	display_paint_text_in_rect(
 		tect_rect,
-		HA_LEFT,
+		HorizAlign::Left,
 		widget_pd.text,
 		paint_data.font,
 		paint_data.colors->form_text
@@ -359,19 +359,19 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 
 	const Rect value_rect = Rect(Point(0, 0), widget_pd.size);
 
-	draw_indented_ctrl_rect(value_rect, widget_pd.color, BS_NORMAL);
+	draw_indented_ctrl_rect(value_rect, widget_pd.color, ButtonStyle::Normal);
 
 	draw_button(
 		up_btn_rect,
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_UP_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL,
+		flags_.get(FLAG_UP_BTN_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal,
 		true
 	);
 
 	draw_button(
 		down_btn_rect,
 		paint_data.colors->btn_bg,
-		flags_.get(FLAG_DOWN_BTN_PRESSED) ? BS_PRESSED : BS_NORMAL,
+		flags_.get(FLAG_DOWN_BTN_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal,
 		true
 	);
 
@@ -385,7 +385,7 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 	print_number(text_buf, 10, value_, dec_pt_);
 	display_paint_text_in_rect(
 		Rect(0, 0, up_btn_rect.x1, widget_pd.size.height),
-		HA_CENTER,
+		HorizAlign::Center,
 		text_buf,
 		paint_data.font,
 		paint_data.colors->form_text
@@ -416,19 +416,19 @@ void UpDownWidget::touch_screen_event(EventType type, const Point pt, const Size
 
 	switch (type)
 	{
-	case EVENT_TOUCHSCREEN_UP:
+	case EventType::TouchscreenUp:
 		{
 			flags_.clear(FLAG_UP_BTN_PRESSED);
 			flags_.clear(FLAG_DOWN_BTN_PRESSED);
 
-	case EVENT_TOUCHSCREEN_REPEATED:
+	case EventType::TouchscreenRepeat:
 			if (hit_up_btn) set_value(value_ + 1);
 			else if (hit_down_btn) set_value(value_ - 1);
 			else refresh();
 		}
 		break;
 
-	case EVENT_TOUCHSCREEN_DOWN:
+	case EventType::TouchscreenDown:
 		flags_.set(FLAG_UP_BTN_PRESSED, hit_up_btn);
 		flags_.set(FLAG_DOWN_BTN_PRESSED, hit_down_btn);
 		if (hit_up_btn || hit_down_btn) refresh();
@@ -470,14 +470,14 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	int border = get_indented_ctrl_border();
 	Rect btn_rect = Rect(widget_size.width-widget_size.height+border, border, widget_size.width-border, widget_size.height-border);
 	Rect data_rect = Rect(Point(0, 0), widget_size);
-	ButtonStyle btn_style = flags_.get(FLAG_PRESSED) ? BS_PRESSED : BS_NORMAL;
+	ButtonStyle btn_style = flags_.get(FLAG_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal;
 	draw_choice_rect(data_rect, widget_pd.color, btn_style);
 	int selection = get_selection();
 	if (selection != -1)
 	{
 		display_paint_text_in_rect(
 			data_rect,
-			HA_LEFT,
+			HorizAlign::Left,
 			items_provider_.get_item(selection),
 			paint_data.font,
 			paint_data.colors->form_text
@@ -531,7 +531,7 @@ struct FormTouchScreenEventData
 Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *colors) :
 	caption_     (caption),
 	font_        (font),
-	modal_result_(MR_NONE)
+	modal_result_(ModalResult::None)
 {
 	colors_ = colors ? colors : &default_colors;
 }
@@ -548,7 +548,7 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 	{
 		display_set_offset(0, 0);
 		display_fill_rect(caption_rect, colors_->caption);
-		display_paint_text_in_rect(caption_rect, HA_CENTER, caption_, font_, colors_->caption_text);
+		display_paint_text_in_rect(caption_rect, HorizAlign::Center, caption_, font_, colors_->caption_text);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -581,8 +581,8 @@ ModalResult Form::show_modal()
 
 	show();
 
-	modal_result_ = MR_NONE;
-	while (modal_result_ == MR_NONE)
+	modal_result_ = ModalResult::None;
+	while (modal_result_ == ModalResult::None)
 		app->process_touch_screen_events();
 
 	app->set_active_form(prev_form);
@@ -594,21 +594,22 @@ ModalResult Form::show_modal()
 
 void WidgetsForm::handle_touch_screen_event(FormTouchScreenEventData &event_data)
 {
-	if (event_data.type == EVENT_TOUCHSCREEN_UP)
+	if (event_data.type == EventType::TouchscreenUp)
 	{
 		if (last_pressed_widget_)
 		{
 			const Point up_rel_pos = event_data.pt.moved(-last_pressed_widget_pos_.x, -last_pressed_widget_pos_.y);
 
 			last_pressed_widget_->touch_screen_event(
-				EVENT_TOUCHSCREEN_UP,
+				EventType::TouchscreenUp,
 				up_rel_pos,
 				last_pressed_widget_size_,
 				this
 			);
 
 			const Rect widget_rect(Point(0, 0), last_pressed_widget_size_);
-			if (widget_rect.contains(up_rel_pos)) widget_event(EVENT_TOUCHSCREEN_UP, last_pressed_widget_);
+			if (widget_rect.contains(up_rel_pos)) 
+				widget_event(EventType::TouchscreenUp, last_pressed_widget_);
 			last_pressed_widget_ = NULL;
 		}
 	}
@@ -687,7 +688,7 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 
 	switch (event_data.type)
 	{
-	case EVENT_TOUCHSCREEN_DOWN:
+	case EventType::TouchscreenDown:
 		if (!data.scr_bar_area.contains(event_data.pt))
 		{
 			int16_t rel_y = (event_data.pt.y - data.client_rect.y1);
@@ -705,12 +706,13 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 		flags_.clear(FLAG_WAS_SCROLLED);
 		break;
 
-	case EVENT_TOUCHSCREEN_MOVE:
+	case EventType::TouchscreenMove:
 		{
 			int move = (event_data.pt.y - scroll_drag_start_y_) / data.item_height;
 			int new_top_item_index = scroll_drag_start_top_item_index_ - move;
 			if (new_top_item_index < 0) new_top_item_index = 0;
-			else if (new_top_item_index > data.offscreen_items_count) new_top_item_index = data.offscreen_items_count;
+			else if (new_top_item_index > data.offscreen_items_count) 
+				new_top_item_index = data.offscreen_items_count;
 			if (new_top_item_index != top_item_index_)
 			{
 				flags_.on(FLAG_WAS_SCROLLED);
@@ -721,8 +723,8 @@ void StringSelectorForm::handle_touch_screen_event(FormTouchScreenEventData &eve
 		}
 		break;
 
-	case EVENT_TOUCHSCREEN_UP:
-		if (!flags_.get(FLAG_WAS_SCROLLED)) set_modal_result(MR_OK);
+	case EventType::TouchscreenUp:
+		if (!flags_.get(FLAG_WAS_SCROLLED)) set_modal_result(ModalResult::Ok);
 		else Application::get_instance()->refresh_active_form();
 		break;
 
@@ -774,7 +776,7 @@ void StringSelectorForm::paint_client_area(
 		draw_button(
 			data.scr_bar_handle,
 			paint_data.colors->btn_bg,
-			scroll_drag_start_y_ != -1 ? BS_PRESSED : BS_NORMAL,
+			scroll_drag_start_y_ != -1 ? ButtonStyle::Pressed : ButtonStyle::Normal,
 			false
 		);
 	}
@@ -804,7 +806,7 @@ int16_t StringSelectorForm::paint_item(
 
 	display_paint_text_in_rect(
 		item_rect,
-		HA_LEFT,
+		HorizAlign::Left,
 		items_provider_->get_item(item_index),
 		get_font(),
 		text_color
@@ -849,13 +851,13 @@ void DialogForm::visit_all_widgets(IWidgetVisitor &visitor)
 
 void DialogForm::widget_event(muil::EventType type, const muil::Widget *widget)
 {
-	if (type == muil::EVENT_TOUCHSCREEN_UP)
+	if (type == muil::EventType::TouchscreenUp)
 	{
 		if (widget == &btn_ok_)
-			set_modal_result(muil::MR_OK);
+			set_modal_result(muil::ModalResult::Ok);
 
 		else if (widget == &btn_cancel_)
-			set_modal_result(muil::MR_CANCEL);
+			set_modal_result(muil::ModalResult::Cancel);
 	}
 }
 
@@ -913,7 +915,7 @@ void Application::process_touch_screen_events()
 	if (touch_screen_pressed && !flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
 	{
 		event.pt = cur_pt;
-		event.type = EVENT_TOUCHSCREEN_DOWN;
+		event.type = EventType::TouchscreenDown;
 		active_form_->handle_touch_screen_event(event);
 		pressed_counter_ = 0;
 	}
@@ -921,7 +923,7 @@ void Application::process_touch_screen_events()
 	else if (!touch_screen_pressed && flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
 	{
 		event.pt = prev_pt_;
-		event.type = EVENT_TOUCHSCREEN_UP;
+		event.type = EventType::TouchscreenUp;
 		active_form_->handle_touch_screen_event(event);
 	}
 
@@ -931,14 +933,14 @@ void Application::process_touch_screen_events()
 
 		if (prev_pt_ != cur_pt)
 		{
-			event.type = EVENT_TOUCHSCREEN_MOVE;
+			event.type = EventType::TouchscreenMove;
 			active_form_->handle_touch_screen_event(event);
 		}
 
 		pressed_counter_++;
 		if ((pressed_counter_ > 50) && ((pressed_counter_ % 10) == 0))
 		{
-			event.type = EVENT_TOUCHSCREEN_REPEATED;
+			event.type = EventType::TouchscreenRepeat;
 			active_form_->handle_touch_screen_event(event);
 		}
 	}
