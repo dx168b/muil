@@ -64,7 +64,7 @@ class Flags
 public:
 	Flags(T initial_flags = 0) : flags_(initial_flags) {}
 
-	bool get(T flag) const { return flags_ & flag; }
+	bool get(T flag) const { return (flags_ & flag) != 0; }
 	void set(T flag, bool value) { flags_ = (flags_ & ~flag) | (value ? flag : 0); }
 
 	void on(T flag) { flags_ |= flag; }

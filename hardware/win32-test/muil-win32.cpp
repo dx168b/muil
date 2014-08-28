@@ -74,9 +74,6 @@ int mouse_y = -1;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	PAINTSTRUCT ps;
-	HDC hdc;
-
 	switch (message)
 	{
 	case WM_LBUTTONDOWN:
