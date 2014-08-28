@@ -88,7 +88,7 @@
     <ClCompile Include="..\..\lib\styles\muil_style_win95.cpp" />
     <ClCompile Include="..\..\samples\forms\PINForm.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MUIL-win32.cpp" />
+    <ClCompile Include="muil-win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\fonts\tahoma14_ru.hpp" />
@@ -101,7 +101,7 @@
     <ClInclude Include="..\..\lib\styles\muil_style_vista.hpp" />
     <ClInclude Include="..\..\lib\styles\muil_style_win95.hpp" />
     <ClInclude Include="..\..\samples\forms\PINForm.hpp" />
-    <ClInclude Include="MUIL-win32.hpp" />
+    <ClInclude Include="muil-win32.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
