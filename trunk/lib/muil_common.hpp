@@ -48,21 +48,21 @@ struct WidgetPaintData;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum EventType
+enum class EventType
 {
-	EVENT_TOUCHSCREEN_DOWN,
-	EVENT_TOUCHSCREEN_UP,
-	EVENT_TOUCHSCREEN_REPEATED,
-	EVENT_TOUCHSCREEN_MOVE,
+	TouchscreenDown,
+	TouchscreenUp,
+	TouchscreenRepeat,
+	TouchscreenMove,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum ModalResult
+enum class ModalResult
 {
-	MR_NONE,
-	MR_OK,
-	MR_CANCEL,
+	None,
+	Ok,
+	Cancel,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,13 +88,10 @@ class Widget
 public:
 	virtual void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) = 0;
 	virtual Color get_default_color(const FormColors &colors) const = 0;
-
 	virtual void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) {}
-
 	void refresh();
 
 	const static uint32_t FLAG_INVALID = 0x0001;
-
 
 protected:
 	Flags<uint32_t> flags_;
@@ -112,8 +109,8 @@ public:
 		flags_.on(align_flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER));
 	}
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
+	Color get_default_color(const FormColors &colors) const override;
 
 	static const uint32_t FLAG_ALIGN_LEFT   = 0x10000;
 	static const uint32_t FLAG_ALIGN_RIGHT  = 0x20000;
@@ -126,7 +123,7 @@ class Indicator : public Widget
 {
 public:
 	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	Color get_default_color(const FormColors &colors) const override;
 
 protected:
 	virtual const wchar_t* get_text() = 0;
@@ -172,8 +169,9 @@ class PressibleWidget : public Widget
 public:
 	static const uint32_t FLAG_PRESSED = 0x0002;
 
+	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) override;
+
 protected:
-	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
 	virtual void pressed(Form *form) = 0;
 };
 
@@ -189,8 +187,8 @@ public:
 
 	static const uint32_t FLAG_DEFAULT = 0x10000;
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
+	Color get_default_color(const FormColors &colors) const override;
 
 protected:
 	void pressed(Form *form) {}
@@ -208,8 +206,8 @@ public:
 
 	static const uint32_t FLAG_CHECKED = 0x10000;
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
+	Color get_default_color(const FormColors &colors) const override;
 
 protected:
 	void pressed(Form *form);
@@ -231,11 +229,11 @@ public:
 
 	void set_value(int value);
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
+	Color get_default_color(const FormColors &colors) const override;
 
 protected:
-	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form);
+	void touch_screen_event(EventType type, const Point pt, const Size &size, Form *form) override;
 
 	static const uint32_t FLAG_UP_BTN_PRESSED = 0x10000;
 	static const uint32_t FLAG_DOWN_BTN_PRESSED = 0x20000;
@@ -285,8 +283,8 @@ public:
 	int get_selection() const { return selection_; }
 	void set_selection(int selection);
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
-	Color get_default_color(const FormColors &colors) const;
+	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
+	Color get_default_color(const FormColors &colors) const override;
 
 protected:
 	void pressed(Form *form);
@@ -360,14 +358,14 @@ public:
 		Form(caption, font),
 		last_pressed_widget_(NULL) {}
 
-	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
+	void handle_touch_screen_event(FormTouchScreenEventData &event_data) override;
 
 protected:
 	virtual void visit_all_widgets(IWidgetVisitor &visitor) = 0;
 	virtual void widget_event(EventType type, const Widget *widget) {}
 	virtual void get_widget_color(const Widget *widget, Color &color) {}
 
-	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
+	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) override;
 
 private:
 	Widget *last_pressed_widget_;
@@ -390,13 +388,13 @@ public:
 		top_item_index_(0),
 		scroll_drag_start_y_(-1) {}
 
-	void handle_touch_screen_event(FormTouchScreenEventData &event_data);
+	void handle_touch_screen_event(FormTouchScreenEventData &event_data) override;
 
 	int get_selection() const { return selection_; }
 
 protected:
-	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets);
-	void before_show();
+	void paint_client_area(FormPaintData &paint_data, const Rect &client_rect, bool force_repaint_all_widgets) override;
+	void before_show() override;
 
 	int16_t paint_item(int item_index, FormPaintData &paint_data, const Rect &client_rect, int items_count, uint16_t item_height, uint16_t scr_bar_width);
 
@@ -420,9 +418,9 @@ public:
 	DialogForm(const wchar_t *caption, const FontInfo *font) : WidgetsForm(caption, font) {}
 
 protected:
-	void visit_all_widgets(IWidgetVisitor &visitor);
-	void widget_event(muil::EventType type, const muil::Widget *widget);
-	void get_widget_color(const muil::Widget *widget, muil::Color &color);
+	void visit_all_widgets(IWidgetVisitor &visitor) override;
+	void widget_event(muil::EventType type, const muil::Widget *widget) override;
+	void get_widget_color(const muil::Widget *widget, muil::Color &color) override;
 
 private:
 	Button btn_ok_;

@@ -41,13 +41,13 @@ void PINForm::visit_all_widgets(muil::IWidgetVisitor &visitor)
 
 void PINForm::widget_event(muil::EventType type, const muil::Widget *widget)
 {
-	if (type == muil::EVENT_TOUCHSCREEN_UP)
+	if (type == muil::EventType::TouchscreenUp)
 	{
 		if (widget == &btn_ent_)
-			set_modal_result(muil::MR_OK);
+			set_modal_result(muil::ModalResult::Ok);
 
 		else if (widget == &btn_esc_)
-			set_modal_result(muil::MR_CANCEL);
+			set_modal_result(muil::ModalResult::Cancel);
 
 		else if (widget == &btn_clr_)
 		{

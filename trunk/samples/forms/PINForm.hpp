@@ -9,9 +9,9 @@ public:
 	PINForm(const wchar_t *caption, const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t pin_len);
 
 protected:
-	void visit_all_widgets(muil::IWidgetVisitor &visitor);
-	void widget_event(muil::EventType type, const muil::Widget *widget);
-	void get_widget_color(const muil::Widget *widget, muil::Color &color);
+	void visit_all_widgets(muil::IWidgetVisitor &visitor) override;
+	void widget_event(muil::EventType type, const muil::Widget *widget) override;
+	void get_widget_color(const muil::Widget *widget, muil::Color &color) override;
 
 private:
 	muil::TextIndicator pin_;

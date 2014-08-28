@@ -60,10 +60,10 @@ void paint_bitmapped_widget(
 );
 
 
-enum ButtonStyle
+enum class ButtonStyle
 {
-	BS_NORMAL,
-	BS_PRESSED
+	Normal,
+	Pressed
 };
 
 void draw_button(const Rect &rect, Color color, ButtonStyle style, bool composite);

@@ -68,15 +68,15 @@ void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_
 	int16_t left_right_layer = text_size.height/4;
 	switch (align)
 	{
-	case HA_LEFT:
+	case HorizAlign::Left:
 		x = rect.x1 + left_right_layer;
 		break;
 
-	case HA_CENTER:
+	case HorizAlign::Center:
 		x = (rect.x1 + rect.x2 - text_size.width) / 2;
 		break;
 
-	case HA_RIGHT:
+	case HorizAlign::Right:
 		x = rect.x2 - text_size.width - left_right_layer;
 		break;
 

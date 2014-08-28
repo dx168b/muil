@@ -32,20 +32,20 @@
 
 namespace muil {
 
-enum Direction
+enum class Direction
 {
-	DIR_UNDEFINED,
-	DIR_UP,
-	DIR_DOWN,
-	DIR_LEFT,
-	DIR_RIGHT,
+	Undefined,
+	Up,
+	Down,
+	Left,
+	Right,
 };
 
-enum HorizAlign
+enum class HorizAlign
 {
-	HA_LEFT,
-	HA_CENTER,
-	HA_RIGHT,
+	Left,
+	Center,
+	Right,
 };
 
 struct Color
