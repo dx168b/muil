@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="MUIL-win32.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\..\lib\fonts\tahoma14_ru.cpp">
+      <Filter>lib\fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\styles\muil_style_vista.cpp">
+      <Filter>lib\styles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\styles\muil_style_win95.cpp">
+      <Filter>lib\styles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\samples\forms\PINForm.cpp">
+      <Filter>samples\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil_classes.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil_common.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil_widgets.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil_display.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="lib">
+      <UniqueIdentifier>{c580cb29-2af8-4ecd-bc23-310dde1aec2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="samples">
+      <UniqueIdentifier>{15006fd1-93a9-495f-bfbd-41a135e99f0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="samples\forms">
+      <UniqueIdentifier>{6cb4c4c8-5b43-435b-b9f3-97c0babebb1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\fonts">
+      <UniqueIdentifier>{35d4fb64-ab0f-4e38-8180-0e0d9e80a6d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\styles">
+      <UniqueIdentifier>{2efd1c0c-97d0-42dc-aaf0-ebc7942d362f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MUIL-win32.hpp" />
+    <ClInclude Include="..\..\lib\fonts\tahoma14_ru.hpp">
+      <Filter>lib\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\styles\muil_style_vista.hpp">
+      <Filter>lib\styles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\styles\muil_style_win95.hpp">
+      <Filter>lib\styles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\samples\forms\PINForm.hpp">
+      <Filter>samples\forms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_classes.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_common.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_utils.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_widgets.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_display.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_touchscreen.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -38,6 +38,8 @@ void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wc
 void     display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color);
 Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
 
+void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+
 } // namespace muil
 
 #endif
