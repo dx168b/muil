@@ -32,7 +32,7 @@
 #include <stddef.h>
 #include <limits.h>
 
-#include "muil_basic_gui.hpp"
+#include "basic_gui/muil_basic_gui.hpp"
 #include "muil_utils.hpp"
 
 namespace muil {

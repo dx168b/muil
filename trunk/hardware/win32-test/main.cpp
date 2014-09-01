@@ -1,6 +1,6 @@
 #include "MUIL-win32.hpp"
 #include "../../lib/styles/muil_style_vista.hpp"
-#include "../../lib/fonts/tahoma14_ru.hpp"
+#include "../../lib/basic_gui/fonts/tahoma14_ru.hpp"
 #include "../../samples/forms/PINForm.hpp"
 
 MUIL_IMPLEMENT_VISTA_STYLE_WIDGETS

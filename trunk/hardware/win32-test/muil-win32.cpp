@@ -1,7 +1,7 @@
 #include <windows.h>
 #undef max
 #undef min
-#include "../../lib/muil_basic_gui.hpp"
+#include "../../lib/basic_gui/muil_basic_gui.hpp"
 #include "../../lib/muil_touchscreen.hpp"
 #include "../../lib/muil_utils.hpp"
 
