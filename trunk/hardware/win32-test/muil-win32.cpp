@@ -1,7 +1,7 @@
 #include <windows.h>
 #undef max
 #undef min
-#include "../../lib/muil_display.hpp"
+#include "../../lib/muil_basic_gui.hpp"
 #include "../../lib/muil_touchscreen.hpp"
 #include "../../lib/muil_utils.hpp"
 
@@ -128,9 +128,12 @@ bool muil::touchscreen_is_pressed()
 	return true;
 }
 
-muil::Point muil::touchscreen_get_pos()
+bool muil::touchscreen_get_pos(int16_t &x, int16_t &y)
 {
-	return muil::Point(mouse_x, mouse_y);
+	if ((mouse_x == -1) || (mouse_y == -1)) return false;
+	x = mouse_x;
+	y = mouse_y;
+	return true;
 }
 
 void muil::delay_ms(uint16_t milliseconds)

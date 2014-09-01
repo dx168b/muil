@@ -1,7 +1,7 @@
 #ifndef TAHOMA14_RU_HPP_FILE_INCLUDED_
 #define TAHOMA14_RU_HPP_FILE_INCLUDED_
 
-#include "../muil_display.hpp"
+#include "../muil_basic_gui.hpp"
 
 namespace muil {
 
