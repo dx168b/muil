@@ -1,7 +1,7 @@
 #ifndef MUIL_TOUCHSCREEN_HPP_FILE_INCLUDED_
 #define MUIL_TOUCHSCREEN_HPP_FILE_INCLUDED_
 
-#include "muil_classes.hpp"
+#include <stdint.h>
 
 namespace muil {
 
@@ -14,7 +14,7 @@ struct TouchScreenCalibrData
 };
 
 bool  touchscreen_is_pressed();
-Point touchscreen_get_pos();
+bool  touchscreen_get_pos(int16_t &x, int16_t &y);
 void  touchscreen_calibrate(TouchScreenCalibrData &data);
 
 } // namespace muil

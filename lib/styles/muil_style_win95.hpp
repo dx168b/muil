@@ -1,7 +1,7 @@
 #ifndef MUIL_STYLE_WIN95_HPP_FILE_INCLUDED_
 #define MUIL_STYLE_WIN95_HPP_FILE_INCLUDED_
 
-#include "../muil_widgets.hpp"
+#include "../muil_widgets_gui.hpp"
 
 namespace muil {
 

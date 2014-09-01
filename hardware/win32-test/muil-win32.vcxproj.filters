@@ -14,19 +14,16 @@
     <ClCompile Include="..\..\samples\forms\PINForm.cpp">
       <Filter>samples\forms</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\lib\muil_classes.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\lib\muil_common.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\lib\muil_widgets.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\lib\muil_display.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
     <ClCompile Include="muil-win32.cpp" />
+    <ClCompile Include="..\..\lib\muil_basic_gui.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil_widgets_gui.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\muil.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -58,24 +55,21 @@
     <ClInclude Include="..\..\samples\forms\PINForm.hpp">
       <Filter>samples\forms</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\lib\muil_classes.hpp">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\lib\muil_common.hpp">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\lib\muil_utils.hpp">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\lib\muil_widgets.hpp">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\lib\muil_display.hpp">
+    <ClInclude Include="muil-win32.hpp" />
+    <ClInclude Include="..\..\lib\muil_basic_gui.hpp">
       <Filter>lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\lib\muil_touchscreen.hpp">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="muil-win32.hpp" />
+    <ClInclude Include="..\..\lib\muil_utils.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil_widgets_gui.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\muil.hpp">
+      <Filter>lib</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

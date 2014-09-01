@@ -80,10 +80,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\fonts\tahoma14_ru.cpp" />
-    <ClCompile Include="..\..\lib\muil_classes.cpp" />
-    <ClCompile Include="..\..\lib\muil_common.cpp" />
-    <ClCompile Include="..\..\lib\muil_display.cpp" />
-    <ClCompile Include="..\..\lib\muil_widgets.cpp" />
+    <ClCompile Include="..\..\lib\muil.cpp" />
+    <ClCompile Include="..\..\lib\muil_basic_gui.cpp" />
+    <ClCompile Include="..\..\lib\muil_widgets_gui.cpp" />
     <ClCompile Include="..\..\lib\styles\muil_style_vista.cpp" />
     <ClCompile Include="..\..\lib\styles\muil_style_win95.cpp" />
     <ClCompile Include="..\..\samples\forms\PINForm.cpp" />
@@ -92,12 +91,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\fonts\tahoma14_ru.hpp" />
-    <ClInclude Include="..\..\lib\muil_classes.hpp" />
-    <ClInclude Include="..\..\lib\muil_common.hpp" />
-    <ClInclude Include="..\..\lib\muil_display.hpp" />
+    <ClInclude Include="..\..\lib\muil.hpp" />
+    <ClInclude Include="..\..\lib\muil_basic_gui.hpp" />
     <ClInclude Include="..\..\lib\muil_touchscreen.hpp" />
     <ClInclude Include="..\..\lib\muil_utils.hpp" />
-    <ClInclude Include="..\..\lib\muil_widgets.hpp" />
+    <ClInclude Include="..\..\lib\muil_widgets_gui.hpp" />
     <ClInclude Include="..\..\lib\styles\muil_style_vista.hpp" />
     <ClInclude Include="..\..\lib\styles\muil_style_win95.hpp" />
     <ClInclude Include="..\..\samples\forms\PINForm.hpp" />

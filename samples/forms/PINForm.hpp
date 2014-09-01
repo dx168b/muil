@@ -1,7 +1,7 @@
 #ifndef PIN_FORM_HPP_FILE_INCLUDED_
 #define PIN_FORM_HPP_FILE_INCLUDED_
 
-#include "muil_common.hpp"
+#include "muil.hpp"
 
 class PINForm : public muil::WidgetsForm
 {

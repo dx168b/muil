@@ -28,6 +28,8 @@
 #ifndef MUIL_UTILS_HPP_FILE_INLUDED_
 #define MUIL_UTILS_HPP_FILE_INLUDED_
 
+#include <stdint.h>
+
 namespace muil {
 
 template <typename X, typename Y>

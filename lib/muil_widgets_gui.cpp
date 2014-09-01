@@ -28,7 +28,7 @@
 
 #include <stddef.h>
 
-#include "muil_display.hpp"
+#include "muil_basic_gui.hpp"
 
 namespace muil {
 

@@ -28,7 +28,7 @@
 #ifndef MUIL_WIDGETS_HPP_FILE_INCLUDED_
 #define MUIL_WIDGETS_HPP_FILE_INCLUDED_
 
-#include "muil_classes.hpp"
+#include "muil_basic_gui.hpp"
 
 namespace muil {
 

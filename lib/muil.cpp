@@ -25,10 +25,10 @@
   Author(s): Denis Artyomov
 =============================================================================*/
 
-#include "muil_display.hpp"
+#include "muil_basic_gui.hpp"
+#include "muil_widgets_gui.hpp"
 #include "muil_touchscreen.hpp"
-#include "muil_common.hpp"
-#include "muil_widgets.hpp"
+#include "muil.hpp"
 
 namespace muil {
 
@@ -908,8 +908,7 @@ void Application::process_touch_screen_events()
 
 	if (touch_screen_pressed)
 	{
-		cur_pt = touchscreen_get_pos();
-		if ((cur_pt.x == -1) || (cur_pt.y == -1)) touch_screen_pressed = false;
+		touch_screen_pressed = touchscreen_get_pos(cur_pt.x, cur_pt.y);
 	}
 
 	if (touch_screen_pressed && !flags_.get(FLAG_PREV_TOUCH_SCREEN_PRESSED))
