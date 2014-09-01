@@ -40,7 +40,7 @@ public:
 	static void write_index(uint8_t index);
 	static void write_data(uint16_t data);
 	static uint16_t read_data();
-	static void fill_pixels(uint16_t value, uint16_t count);
+	static void write_data16(uint16_t value, uint16_t count);
 
 private:
 	const static uint8_t SPI_START = 0x70; // Start byte for SPI transfer
@@ -84,11 +84,10 @@ uint16_t ILI9320DisplaySPIConnector<SPI, CSPin>::read_data()
 }
 
 template <typename SPI, typename CSPin>
-void ILI9320DisplaySPIConnector<SPI, CSPin>::fill_pixels(uint16_t value, uint16_t count)
+void ILI9320DisplaySPIConnector<SPI, CSPin>::write_data16(uint16_t value, uint16_t count)
 {
 	const uint8_t high = (value & 0xFF00) >> 8;
 	const uint8_t low = (value & 0xFF);
-	write_index(0x0022);
 	SPI::template cs_low<CSPin>();
 	SPI::write(SPI_START | SPI_WR | SPI_DATA);
 	while (count--)
@@ -269,7 +268,8 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 		for (int16_t y = y1; y <= y2; y++)
 		{
 			set_cursor(x1, y);
-			Connector::fill_pixels(color_v, width);
+			Connector::write_index(0x0022);
+			Connector::write_data16(color_v, width);
 		}
 	}
 	else
@@ -278,7 +278,8 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 		for (int16_t x = x1; x <= x2; x++)
 		{
 			set_cursor(x, y1);
-			Connector::fill_pixels(color_v, height);
+			Connector::write_index(0x0022);
+			Connector::write_data16(color_v, height);
 		}
 	}
 }
