@@ -28,10 +28,11 @@
 #ifndef ILI9320_HPP_FILE_INCLUDED_
 #define ILI9320_HPP_FILE_INCLUDED_
 
-#include "../muil_classes.hpp"
-#include "../muil_utils.hpp"
+#include "muil_basic_gui.hpp"
 
 namespace muil {
+
+extern void delay_ms(uint16_t value);
 
 template <typename SPI, typename CSPin>
 class ILI9320DisplaySPIConnector
@@ -75,7 +76,7 @@ uint16_t ILI9320DisplaySPIConnector<SPI, CSPin>::read_data()
 {
 	SPI::template cs_low<CSPin>();
 	SPI::write(SPI_START | SPI_RD | SPI_DATA);
-	SPI::write(0);
+	SPI::write(0); 
 	uint16_t result = SPI::write_and_read(0) & 0xFF;
 	result <<= 8;
 	result |= (SPI::write_and_read(0) & 0xFF);
@@ -109,9 +110,7 @@ public:
 		SupportColor = 1
 	};
 
-	ILI9320Display() : cur_dir_(DIR_UNDEFINED) {}
-
-	void init();
+	uint16_t init();
 
 	static Size get_size();
 	static uint16_t get_dpi();
@@ -132,13 +131,13 @@ private:
 	static uint16_t rgb_to_value(Color color);
 	void set_direction(Direction dir);
 
-	Direction cur_dir_;
-	int offset_x_;
-	int offset_y_;
+	Direction cur_dir_ = Direction::Undefined;
+	int offset_x_ = 0;
+	int offset_y_ = 0;
 };
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::init()
+uint16_t ILI9320Display<Connector, ResetPin>::init()
 {
 	delay_ms(50);
 	ResetPin::on();
@@ -154,10 +153,13 @@ void ILI9320Display<Connector, ResetPin>::init()
 		uint16_t value;
 	};
 
-	write_reg(0, 0);
+	write_reg(0x00, 0x0001); // Set the Vcore voltage and this setting is must
+	write_reg(0xE5, 0x8000); // Start internal OSC
+
+	delay_ms(10);
 
 	uint16_t display_code = read_reg(0);
-	if (display_code != 0x9320) return;
+	if (display_code != 0x9320) return display_code;
 
 	static const RegValue values[] =
 	{
@@ -215,7 +217,9 @@ void ILI9320Display<Connector, ResetPin>::init()
 		val_ptr++;
 	}
 
-	set_direction(DIR_RIGHT);
+	set_direction(Direction::Right);
+
+	return display_code;
 }
 
 template <typename Connector, typename ResetPin>
@@ -264,7 +268,7 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 
 	if (width > height)
 	{
-		set_direction(DIR_RIGHT);
+		set_direction(Direction::Right);
 		for (int16_t y = y1; y <= y2; y++)
 		{
 			set_cursor(x1, y);
@@ -274,7 +278,7 @@ void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Colo
 	}
 	else
 	{
-		set_direction(DIR_DOWN);
+		set_direction(Direction::Down);
 		for (int16_t x = x1; x <= x2; x++)
 		{
 			set_cursor(x, y1);
@@ -298,7 +302,7 @@ void ILI9320Display<Connector, ResetPin>::paint_character(
 	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
 	int16_t y = y0;
-	set_direction(DIR_RIGHT);
+	set_direction(Direction::Right);
 	for (; height != 0; height--, y++)
 	{
 		int32_t x = x0;
@@ -357,12 +361,12 @@ void ILI9320Display<Connector, ResetPin>::set_direction(Direction dir)
 	uint16_t id = 0;
 	switch (dir)
 	{
-		case DIR_RIGHT:
+		case Direction::Right:
 			id = 0x03;
 			am = 0;
 			break;
 
-		case DIR_DOWN:
+		case Direction::Down:
 			id = 0x03;
 			am = 1;
 			break;
