@@ -186,6 +186,26 @@ Size display_get_text_size(const FontInfo *font, const wchar_t *text)
 	return Size(width, font->heightPages);
 }
 
+static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const FontInfo *font, const Color &color)
+{
+	if (chr == ' ')
+	{
+		x += 2*font->spacePixels;
+		return;
+	}
+	const FontCharInfo* char_info = display_find_char_info(font, chr);
+	if (char_info == NULL) char_info = display_find_char_info(font, '?');
+	display_paint_character(
+		x, y,
+		&font->data[char_info->offset],
+		char_info->widthBits,
+		font->heightPages,
+		color
+	);
+	x += char_info->widthBits + font->spacePixels;
+}
+
+
 template <class Fun>
 void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
 {
@@ -223,23 +243,8 @@ void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
 
 void display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color)
 {
-	auto paint_char_fun = [&] (wchar_t chr)
-	{
-		if (chr == ' ')
-		{
-			x += 2*font->spacePixels;
-			return;
-		}
-		const FontCharInfo* char_info = display_find_char_info(font, chr);
-		if (char_info == NULL) char_info = display_find_char_info(font, '?');
-		display_paint_character(
-			x, y,
-			&font->data[char_info->offset],
-			char_info->widthBits,
-			font->heightPages,
-			color
-		);
-		x += char_info->widthBits + font->spacePixels;
+	auto paint_char_fun = [&] (wchar_t chr) {
+		paint_charaster_and_move_caret(chr, x, y, font, color);
 	};
 
 	print_integer10(value, pt_pos, paint_char_fun);
@@ -261,23 +266,8 @@ void print_integer16(uint32_t value, const Fun &out_char_fun)
 
 void display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color)
 {
-	auto paint_char_fun = [&] (wchar_t chr)
-	{
-		if (chr == ' ')
-		{
-			x += 2*font->spacePixels;
-			return;
-		}
-		const FontCharInfo* char_info = display_find_char_info(font, chr);
-		if (char_info == NULL) char_info = display_find_char_info(font, '?');
-		display_paint_character(
-			x, y,
-			&font->data[char_info->offset],
-			char_info->widthBits,
-			font->heightPages,
-			color
-		);
-		x += char_info->widthBits + font->spacePixels;
+	auto paint_char_fun = [&] (wchar_t chr) {
+		paint_charaster_and_move_caret(chr, x, y, font, color);
 	};
 
 	print_integer16(value, paint_char_fun);
