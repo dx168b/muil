@@ -186,6 +186,103 @@ Size display_get_text_size(const FontInfo *font, const wchar_t *text)
 	return Size(width, font->heightPages);
 }
 
+template <class Fun>
+void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
+{
+	if (value < 0)
+	{
+		value = -value;
+		out_char_fun('-');
+	}
+
+	int comp_value = 1000000000;
+
+	if (pt_pos != -1) pt_pos = 9-pt_pos;
+
+	bool begin = true;
+	do
+	{
+		wchar_t chr = '0';
+		while (value >= comp_value)
+		{
+			value -= comp_value;
+			chr++;
+		}
+		if (chr != '0') begin = false;
+		if (!begin || (comp_value == 1))
+			out_char_fun(chr);
+		comp_value /= 10;
+		if ((pt_pos != -1) && (pt_pos-- == 0))
+		{
+			out_char_fun('.');
+			begin = false;
+		}
+	}
+	while (comp_value != 0);
+}
+
+void display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color)
+{
+	auto paint_char_fun = [&] (wchar_t chr)
+	{
+		if (chr == ' ')
+		{
+			x += 2*font->spacePixels;
+			return;
+		}
+		const FontCharInfo* char_info = display_find_char_info(font, chr);
+		if (char_info == NULL) char_info = display_find_char_info(font, '?');
+		display_paint_character(
+			x, y,
+			&font->data[char_info->offset],
+			char_info->widthBits,
+			font->heightPages,
+			color
+		);
+		x += char_info->widthBits + font->spacePixels;
+	};
+
+	print_integer10(value, pt_pos, paint_char_fun);
+}
+
+template <class Fun>
+void print_integer16(uint32_t value, const Fun &out_char_fun)
+{
+	bool begin = true;
+	for (unsigned i = 0; i < 8; i++)
+	{
+		uint32_t val = (value & 0xF0000000) >> 28;
+		wchar_t chr = (val < 10) ? (val + '0') : (val - 10 + 'A');
+		if ((val != 0) || (i == 7)) begin = false;
+		if (!begin) out_char_fun(chr);
+		value <<= 4;
+	}
+}
+
+void display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color)
+{
+	auto paint_char_fun = [&] (wchar_t chr)
+	{
+		if (chr == ' ')
+		{
+			x += 2*font->spacePixels;
+			return;
+		}
+		const FontCharInfo* char_info = display_find_char_info(font, chr);
+		if (char_info == NULL) char_info = display_find_char_info(font, '?');
+		display_paint_character(
+			x, y,
+			&font->data[char_info->offset],
+			char_info->widthBits,
+			font->heightPages,
+			color
+		);
+		x += char_info->widthBits + font->spacePixels;
+	};
+
+	print_integer16(value, paint_char_fun);
+}
+
 void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
 {
 	display_fill_rect(Rect(x1, y1, x2, y2), color);
