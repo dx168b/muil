@@ -247,10 +247,13 @@ void ILI9320Display<Connector, ResetPin>::set_point(int x, int y, const Color &c
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Color &color)
 {
-	int16_t x1 = rect.x1 + offset_x_;
-	int16_t y1 = rect.y1 + offset_y_;
-	int16_t x2 = rect.x2 + offset_x_;
-	int16_t y2 = rect.y2 + offset_y_;
+	auto min = [] (int16_t x1, int16_t x2) { return x1 < x2 ? x1 : x2; };
+	auto max = [] (int16_t x1, int16_t x2) { return x1 > x2 ? x1 : x2; };
+
+	int16_t x1 = min(rect.x1, rect.x2) + offset_x_;
+	int16_t y1 = min(rect.y1, rect.y2) + offset_y_;
+	int16_t x2 = max(rect.x1, rect.x2) + offset_x_;
+	int16_t y2 = max(rect.y1, rect.y2) + offset_y_;
 
 	if ((x1 < 0) && (x2 < 0)) return;
 	if ((y1 < 0) && (y2 < 0)) return;
