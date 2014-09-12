@@ -73,7 +73,7 @@ const FontInfo firaMono48ptFontInfo =
 {
 	46, //  Character height
 	2, //  Width, in pixels, of space character
-	firaMono48ptDescriptors, //  Character decriptor array
+	firaMono48ptDescriptors, //  Character descriptor array
 	firaMono48ptBitmaps, //  Character bitmap array
 };
 
