@@ -33,7 +33,16 @@
 namespace muil {
 namespace detailed {
 
-inline bool check_and_correct_rect_coords(const Rect &rect, unsigned scr_width, unsigned scr_height, int offset_x, int offset_y, int16_t &x1, int16_t &y1, int16_t &x2, int16_t &y2)
+inline bool check_and_correct_rect_coords(
+	const Rect &rect,
+	unsigned   scr_width,
+	unsigned   scr_height,
+	int        offset_x,
+	int        offset_y,
+	int16_t    &x1,
+	int16_t    &y1,
+	int16_t    &x2,
+	int16_t    &y2)
 {
 	auto min = [] (int16_t x1, int16_t x2) { return x1 < x2 ? x1 : x2; };
 	auto max = [] (int16_t x1, int16_t x2) { return x1 > x2 ? x1 : x2; };
