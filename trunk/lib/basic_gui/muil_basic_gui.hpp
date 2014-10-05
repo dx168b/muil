@@ -5,13 +5,13 @@
 
 namespace muil {
 
-enum class Direction
+enum class Rotation
 {
 	Undefined,
-	Up,
-	Down,
-	Left,
-	Right,
+	Portrait,
+	Album,
+	Portrait180,
+	Album180,
 };
 
 enum class HorizAlign
@@ -127,20 +127,20 @@ uint16_t display_get_dpi();
 void     display_set_offset(int x, int y);
 void     display_set_point(int x, int y, const Color &color);
 void     display_fill_rect(const Rect &rect, const Color &color);
-void     display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+void     display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color);
 
 void     display_fill_rect(int x1, int y1, int x2, int y2, const Color &color);
 void     display_draw_rect(const Rect &rect, int16_t width, const Color &color);
 void     display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
 void     display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
-void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color);
-void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color);
-void     display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color);
-void     display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color);
+void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color);
+void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color);
+void     display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color, const Color *bg_color);
+void     display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color, const Color *bg_color);
 void     display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color);
 Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
 
-void     default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+void     default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color);
 
 } // namespace muil
 
