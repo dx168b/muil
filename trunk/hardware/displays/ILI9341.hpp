@@ -466,19 +466,19 @@ void ILI9341Display<Connector>::set_rotation(Rotation rotation)
 
 	switch (rotation)
 	{
-	case Rotation::Album:
+	case Rotation::Portrait:
 		Connector::write_data(0x48);
 		break;
 
-	case Rotation::Portrait:
+	case Rotation::Album:
 		Connector::write_data(0x28);
 		break;
 
-	case Rotation::Album180:
+	case Rotation::Portrait180:
 		Connector::write_data(0x88);
 		break;
 
-	case Rotation::Portrait180:
+	case Rotation::Album180:
 		Connector::write_data(0x80|0x40|0x20|0x08);
 		break;
 	}
