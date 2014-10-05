@@ -122,7 +122,8 @@ struct FontInfo
 	const uint8_t*      data;        // pointer to generated array of character visual representation
 };
 
-Size     display_get_size();
+unsigned display_get_width();
+unsigned display_get_height();
 uint16_t display_get_dpi();
 void     display_set_offset(int x, int y);
 void     display_set_point(int x, int y, const Color &color);
