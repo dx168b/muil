@@ -129,7 +129,7 @@ private:
 
 	static void write_reg(uint8_t reg, uint16_t data);
 	static uint16_t read_reg(uint8_t reg);
-	static void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+	void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 	static uint16_t rgb_to_value(Color color);
 	void set_direction(Rotation rotation);
 
@@ -346,10 +346,36 @@ uint16_t ILI9320Display<Connector, ResetPin>::read_reg(uint8_t reg)
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
-	write_reg(0x50, x1);
-	write_reg(0x51, x2);
-	write_reg(0x52, y1);
-	write_reg(0x53, y2);
+	switch (cur_rotation_)
+	{
+		case Rotation::Portrait:
+			write_reg(0x50, x1);
+			write_reg(0x51, x2);
+			write_reg(0x52, y1);
+			write_reg(0x53, y2);
+			break;
+
+		case Rotation::Album:
+			write_reg(0x50, Width - y2);
+			write_reg(0x51, Width - y1);
+			write_reg(0x52, x1);
+			write_reg(0x53, x2);
+			break;
+
+		case Rotation::Portrait180:
+			write_reg(0x50, Width - x2);
+			write_reg(0x51, Width - y1);
+			write_reg(0x52, Height - x2);
+			write_reg(0x53, Height - x1);
+			break;
+
+		case Rotation::Album180:
+			write_reg(0x50, y1);
+			write_reg(0x51, y2);
+			write_reg(0x52, Height - x2);
+			write_reg(0x53, Height - x1);
+			break;
+	}
 }
 
 template <typename Connector, typename ResetPin>
