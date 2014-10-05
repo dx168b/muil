@@ -115,7 +115,7 @@ void display_draw_horizontal_gradient(const Rect &rect, const Color &color1, con
 		display_fill_rect(x, rect.y1, x, rect.y2, Color::between(color1, color2, i, width));
 }
 
-void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color)
+void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color)
 {
 	for (size_t i = 0; text[i]; i++)
 	{
@@ -131,13 +131,14 @@ void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font,
 			&font->data[char_info->offset],
 			char_info->widthBits,
 			font->heightPages,
-			color
+			color,
+			bg_color
 		);
 		x += char_info->widthBits + font->spacePixels;
 	}
 }
 
-void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color)
+void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color)
 {
 	const Size display_size = display_get_size();
 	if (rect.intersects(Rect(Point(0, 0), display_size))) return;
@@ -165,7 +166,7 @@ void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_
 		return;
 	}
 
-	display_paint_text(x, y, text, font, color);
+	display_paint_text(x, y, text, font, color, bg_color);
 }
 
 Size display_get_text_size(const FontInfo *font, const wchar_t *text)
@@ -186,7 +187,7 @@ Size display_get_text_size(const FontInfo *font, const wchar_t *text)
 	return Size(width, font->heightPages);
 }
 
-static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const FontInfo *font, const Color &color)
+static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const FontInfo *font, const Color &color, const Color *bg_color)
 {
 	if (chr == ' ')
 	{
@@ -200,7 +201,8 @@ static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const Fon
 		&font->data[char_info->offset],
 		char_info->widthBits,
 		font->heightPages,
-		color
+		color,
+		bg_color
 	);
 	x += char_info->widthBits + font->spacePixels;
 }
@@ -241,10 +243,10 @@ void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
 	while (comp_value != 0);
 }
 
-void display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color)
+void display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color, const Color *bg_color)
 {
 	auto paint_char_fun = [&] (wchar_t chr) {
-		paint_charaster_and_move_caret(chr, x, y, font, color);
+		paint_charaster_and_move_caret(chr, x, y, font, color, bg_color);
 	};
 
 	print_integer10(value, pt_pos, paint_char_fun);
@@ -264,10 +266,10 @@ void print_integer16(uint32_t value, const Fun &out_char_fun)
 	}
 }
 
-void display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color)
+void display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color, const Color *bg_color)
 {
 	auto paint_char_fun = [&] (wchar_t chr) {
-		paint_charaster_and_move_caret(chr, x, y, font, color);
+		paint_charaster_and_move_caret(chr, x, y, font, color, bg_color);
 	};
 
 	print_integer16(value, paint_char_fun);
