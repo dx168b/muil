@@ -140,9 +140,6 @@ void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font,
 
 void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color)
 {
-	const Size display_size = display_get_size();
-	if (rect.intersects(Rect(Point(0, 0), display_size))) return;
-
 	const Size text_size = display_get_text_size(font, text);
 
 	int16_t x;
@@ -302,7 +299,7 @@ void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const
 	int16_t cnt_y2 = dx2 / 2;
 	int16_t yy2 = y1;
 
-	int16_t scr_width = display_get_size().width;
+	int16_t scr_width = display_get_width();
 
 	for (int16_t x = x1; x <= x3; x++)
 	{
@@ -339,7 +336,7 @@ void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const
 	}
 }
 
-void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color)
+void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color)
 {
 	const uint16_t w8 = (width + 7) / 8;
 	int16_t y = y0;
@@ -351,7 +348,10 @@ void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_
 			uint8_t value = *data++;
 			for (uint8_t j = 0; j < 8; j++)
 			{
-				if (value & 0x80) display_set_point(x, y, color);
+				if (value & 0x80) 
+					display_set_point(x, y, color);
+				else if (bg_color) 
+					display_set_point(x, y, *bg_color);
 				x++;
 				value <<= 1;
 			}

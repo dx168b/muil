@@ -216,7 +216,8 @@ void Label::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPain
 		horiz_align,
 		widget_pd.text,
 		paint_data.font,
-		paint_data.colors->form_text
+		paint_data.colors->form_text,
+		nullptr
 	);
 }
 
@@ -236,7 +237,8 @@ void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const Widget
 		HorizAlign::Center,
 		get_text(),
 		paint_data.font,
-		paint_data.colors->form_text
+		paint_data.colors->form_text,
+		nullptr
 	);
 }
 
@@ -294,7 +296,8 @@ void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 		HorizAlign::Center,
 		widget_pd.text,
 		paint_data.font,
-		paint_data.colors->form_text
+		paint_data.colors->form_text,
+		nullptr
 	);
 }
 
@@ -318,7 +321,8 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 		HorizAlign::Left,
 		widget_pd.text,
 		paint_data.font,
-		paint_data.colors->form_text
+		paint_data.colors->form_text,
+		nullptr
 	);
 }
 
@@ -388,7 +392,8 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 		HorizAlign::Center,
 		text_buf,
 		paint_data.font,
-		paint_data.colors->form_text
+		paint_data.colors->form_text,
+		nullptr
 	);
 }
 
@@ -480,7 +485,8 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 			HorizAlign::Left,
 			items_provider_.get_item(selection),
 			paint_data.font,
-			paint_data.colors->form_text
+			paint_data.colors->form_text,
+			nullptr
 		);
 	}
 	draw_button(btn_rect, paint_data.colors->btn_bg, btn_style, true);
@@ -548,7 +554,7 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 	{
 		display_set_offset(0, 0);
 		display_fill_rect(caption_rect, colors_->caption);
-		display_paint_text_in_rect(caption_rect, HorizAlign::Center, caption_, font_, colors_->caption_text);
+		display_paint_text_in_rect(caption_rect, HorizAlign::Center, caption_, font_, colors_->caption_text, nullptr);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -561,10 +567,11 @@ int16_t Form::get_caption_height() const
 
 void Form::get_form_rects(Rect *caption_rect, Rect *client_rect) const
 {
-	Size disp_size = display_get_size();
+	unsigned disp_width = display_get_width();
+	unsigned disp_height = display_get_height();
 	int16_t capt_height = get_caption_height();
-	if (caption_rect) *caption_rect = Rect(0, 0, disp_size.width-1, capt_height-1);
-	if (client_rect) *client_rect = Rect(0, capt_height, disp_size.width-1, disp_size.height-1);
+	if (caption_rect) *caption_rect = Rect(0, 0, disp_width - 1, capt_height - 1);
+	if (client_rect) *client_rect = Rect(0, capt_height, disp_width - 1, disp_height - 1);
 }
 
 void Form::show()
@@ -809,7 +816,8 @@ int16_t StringSelectorForm::paint_item(
 		HorizAlign::Left,
 		items_provider_->get_item(item_index),
 		get_font(),
-		text_color
+		text_color,
+		nullptr
 	);
 
 	return y2;

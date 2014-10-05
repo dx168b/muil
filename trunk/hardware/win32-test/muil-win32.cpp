@@ -79,9 +79,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 int offset_x = 0;
 int offset_y = 0;
 
-muil::Size muil::display_get_size()
+unsigned muil::display_get_width()
 {
-	return muil::Size(240, 320);
+	return 240;
+}
+
+unsigned muil::display_get_height()
+{
+	return 320;
 }
 
 uint16_t muil::display_get_dpi()
@@ -112,9 +117,16 @@ void muil::display_fill_rect(const muil::Rect &rect, const muil::Color &color)
 	ReleaseDC(hWnd, hdc);
 }
 
-void muil::display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const muil::Color &color)
+void muil::display_paint_character(
+	int               x0, 
+	int               y0, 
+	const uint8_t     *data, 
+	uint8_t           width, 
+	uint8_t           height, 
+	const muil::Color &color, 
+	const muil::Color *bg_color)
 {
-	default_display_paint_character(x0, y0, data, width, height, color);
+	default_display_paint_character(x0, y0, data, width, height, color, bg_color);
 }
 
 void muil::display_set_offset(int x, int y)
