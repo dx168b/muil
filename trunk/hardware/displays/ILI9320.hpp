@@ -29,6 +29,7 @@
 #define ILI9320_HPP_FILE_INCLUDED_
 
 #include "muil_basic_gui.hpp"
+#include "muil_display_utils.hpp"
 
 namespace muil {
 
@@ -112,26 +113,27 @@ public:
 
 	uint16_t init();
 
-	static Size get_size();
+	unsigned get_width() const;
+	unsigned get_height() const;
 	static uint16_t get_dpi();
 	void set_offset(int x, int y) { offset_x_ = x; offset_y_ = y; }
 	void set_point(int x, int y, const Color &color);
 	void fill_rect(const Rect &rect, const Color &color);
-	void paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color);
+	void paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color);
 
 private:
-	static bool crd_is_ok(int16_t x, int16_t y)
+	bool crd_is_ok(int16_t x, int16_t y)
 	{
-		return ((x >= 0) && (y >= 0) && (x < Width) && (y < Height));
+		return ((x >= 0) && (y >= 0) && (x < get_width()) && (y < get_height()));
 	}
 
 	static void write_reg(uint8_t reg, uint16_t data);
 	static uint16_t read_reg(uint8_t reg);
-	static void set_cursor(int32_t x, int32_t y);
+	static void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 	static uint16_t rgb_to_value(Color color);
-	void set_direction(Direction dir);
+	void set_direction(Rotation rotation);
 
-	Direction cur_dir_ = Direction::Undefined;
+	Rotation cur_rotation_ = Rotation::Undefined;
 	int offset_x_ = 0;
 	int offset_y_ = 0;
 };
@@ -217,15 +219,43 @@ uint16_t ILI9320Display<Connector, ResetPin>::init()
 		val_ptr++;
 	}
 
-	set_direction(Direction::Right);
+	set_direction(Rotation::Album);
 
 	return display_code;
 }
 
 template <typename Connector, typename ResetPin>
-Size ILI9320Display<Connector, ResetPin>::get_size()
+unsigned ILI9320Display<Connector, ResetPin>::get_width() const
 {
-	return Size(Width, Height);
+	switch (cur_rotation_)
+	{
+	case Rotation::Portrait:
+	case Rotation::Portrait180:
+		return Width;
+
+	case Rotation::Album:
+	case Rotation::Album180:
+		return Height;
+	}
+
+	return Width;
+}
+
+template <typename Connector, typename ResetPin>
+unsigned ILI9320Display<Connector, ResetPin>::get_height() const
+{
+	switch (cur_rotation_)
+	{
+	case Rotation::Portrait:
+	case Rotation::Portrait180:
+		return Height;
+
+	case Rotation::Album:
+	case Rotation::Album180:
+		return Width;
+	}
+
+	return Height;
 }
 
 template <typename Connector, typename ResetPin>
@@ -240,55 +270,28 @@ void ILI9320Display<Connector, ResetPin>::set_point(int x, int y, const Color &c
 	x += offset_x_;
 	y += offset_y_;
 	if ( !crd_is_ok(x, y) ) return;
-	set_cursor(x, y);
+	set_window(x, y, x, y);
 	write_reg(0x0022, rgb_to_value(color));
 }
 
 template <typename Connector, typename ResetPin>
 void ILI9320Display<Connector, ResetPin>::fill_rect(const Rect &rect, const Color &color)
 {
-	auto min = [] (int16_t x1, int16_t x2) { return x1 < x2 ? x1 : x2; };
-	auto max = [] (int16_t x1, int16_t x2) { return x1 > x2 ? x1 : x2; };
+	int16_t x1, y1, x2, y2;
+	bool ok = detailed::check_and_correct_rect_coords(
+		rect,
+		get_width(),
+		get_height(),
+		offset_x_,
+		offset_y_,
+		x1, y1, x2, y2
+	);
 
-	int16_t x1 = min(rect.x1, rect.x2) + offset_x_;
-	int16_t y1 = min(rect.y1, rect.y2) + offset_y_;
-	int16_t x2 = max(rect.x1, rect.x2) + offset_x_;
-	int16_t y2 = max(rect.y1, rect.y2) + offset_y_;
-
-	if ((x1 < 0) && (x2 < 0)) return;
-	if ((y1 < 0) && (y2 < 0)) return;
-	if ((x1 >= Width) && (x2 >= Width)) return;
-	if ((y1 >= Height) && (y2 >= Height)) return;
-
-	if (x1 < 0) x1 = 0;
-	if (y1 < 0) y1 = 0;
-	if (x2 >= Width) x2 = Width-1;
-	if (y2 >= Height) y2 = Height-1;
-
-	const uint16_t width = x2 - x1 + 1;
-	const uint16_t height = y2 - y1 + 1;
+	if (!ok) return;
 	const uint16_t color_v = rgb_to_value(color);
-
-	if (width > height)
-	{
-		set_direction(Direction::Right);
-		for (int16_t y = y1; y <= y2; y++)
-		{
-			set_cursor(x1, y);
-			Connector::write_index(0x0022);
-			Connector::write_data16(color_v, width);
-		}
-	}
-	else
-	{
-		set_direction(Direction::Down);
-		for (int16_t x = x1; x <= x2; x++)
-		{
-			set_cursor(x, y1);
-			Connector::write_index(0x0022);
-			Connector::write_data16(color_v, height);
-		}
-	}
+	set_window(x1, y1, x2, y2);
+	Connector::write_index(0x0022);
+	Connector::write_data16(color_v, (x2 - x1 + 1) * (y2 - y1 + 1));
 }
 
 template <typename Connector, typename ResetPin>
@@ -298,14 +301,14 @@ void ILI9320Display<Connector, ResetPin>::paint_character(
 	const uint8_t *data,
 	uint8_t       width,
 	uint8_t       height,
-	const Color   &color)
+	const Color   &color,
+	const Color   *bg_color)
 {
 	x0 += offset_x_;
 	y0 += offset_y_;
 	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
 	int16_t y = y0;
-	set_direction(Direction::Right);
 	for (; height != 0; height--, y++)
 	{
 		int32_t x = x0;
@@ -316,7 +319,7 @@ void ILI9320Display<Connector, ResetPin>::paint_character(
 			{
 				if (crd_is_ok(x, y) && (value & 0x80))
 				{
-					set_cursor(x, y);
+					set_window(x, y, x, y);
 					write_reg(0x0022, color_v);
 				}
 				x++;
@@ -341,10 +344,12 @@ uint16_t ILI9320Display<Connector, ResetPin>::read_reg(uint8_t reg)
 }
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::set_cursor(int32_t x, int32_t y)
+void ILI9320Display<Connector, ResetPin>::set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
-	write_reg(0x0020, 0xFFFF & x);
-	write_reg(0x0021, 0xFFFF & y);
+	write_reg(0x50, x1);
+	write_reg(0x51, x2);
+	write_reg(0x52, y1);
+	write_reg(0x53, y2);
 }
 
 template <typename Connector, typename ResetPin>
@@ -357,40 +362,41 @@ uint16_t ILI9320Display<Connector, ResetPin>::rgb_to_value(Color color)
 }
 
 template <typename Connector, typename ResetPin>
-void ILI9320Display<Connector, ResetPin>::set_direction(Direction dir)
+void ILI9320Display<Connector, ResetPin>::set_direction(Rotation rotation)
 {
-	if (dir == cur_dir_) return;
-	uint16_t am = 0;
-	uint16_t id = 0;
-	switch (dir)
+	if (rotation == cur_rotation_) return;
+	switch (rotation)
 	{
-		case Direction::Right:
-			id = 0x03;
-			am = 0;
+		case Rotation::Portrait:
+			write_reg(0x03, 0x10b0);
 			break;
 
-		case Direction::Down:
-			id = 0x03;
-			am = 1;
+		case Rotation::Album:
+			write_reg(0x03, 0x10a8);
 			break;
 
-		default:
+		case Rotation::Portrait180:
+			write_reg(0x03, 0x1080);
+			break;
+
+		case Rotation::Album180:
+			write_reg(0x03, 0x1098);
 			break;
 	}
-	write_reg(0x03, 0x1000 | (am << 3) | (id << 4));
-	cur_dir_ = dir;
+	cur_rotation_ = rotation;
 }
 
 } // end "namespace muil"
 
 #define IMPLEMENT_ILI9320_DISPLAY(OBJ) \
 namespace muil { \
-	Size display_get_size() { return OBJ.get_size(); } \
+	unsigned display_get_width() { return OBJ.get_width(); } \
+	unsigned display_get_height() { return OBJ.get_height(); } \
 	uint16_t display_get_dpi() { return OBJ.get_dpi(); } \
 	void display_set_offset(int x, int y) { OBJ.set_offset(x, y); } \
 	void display_set_point(int x, int y, const Color &color) { OBJ.set_point(x, y, color); } \
 	void display_fill_rect(const Rect &rect, const Color &color) { OBJ.fill_rect(rect, color); } \
-	void display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color) { OBJ.paint_character(x0, y0, data, width, height, color); } \
+	void display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color) { OBJ.paint_character(x0, y0, data, width, height, color, bg_color); } \
 }
 
 
