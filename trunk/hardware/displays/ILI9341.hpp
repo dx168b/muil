@@ -407,26 +407,53 @@ void ILI9341Display<Connector>::paint_character(
 {
 	x0 += offset_x_;
 	y0 += offset_y_;
-	const uint16_t w8 = (width + 7) / 8;
 	const uint16_t color_v = rgb_to_value(color);
+	const uint16_t bg_color_v = bg_color ? rgb_to_value(*bg_color) : 0;
 	int16_t y = y0;
+
+	if (bg_color)
+	{
+		set_window(x0, y0, x0 + width - 1, y0 + Height - 1);
+		Connector::write_command(ILI9341_RAMWR);
+	}
+
 	for (; height != 0; height--, y++)
 	{
 		int32_t x = x0;
-		for (uint16_t i = 0; i < w8; i++)
+
+		uint8_t value = 0x80;
+
+		for (uint8_t i = 0; i < width; i++)
 		{
-			uint8_t value = *data++;
-			for (uint8_t j = 0; j < 8; j++)
+			bool on;
+
+			if (value == 0x80)
 			{
-				if (crd_is_ok(x, y) && (value & 0x80))
-				{
-					set_window(x, y, x, y);
-					Connector::write_command(ILI9341_RAMWR);
-					Connector::write_data16_count(color_v, 1);
-				}
-				x++;
+				value = *data++;
+				on = value & 0x80;
+				value = (value << 1) | 1;
+			}
+			else
+			{
+				on = value & 0x80;
 				value <<= 1;
 			}
+
+			if (crd_is_ok(x, y))
+			{
+				if (on)
+				{
+					if (!bg_color)
+					{
+						set_window(x, y, x, y);
+						Connector::write_command(ILI9341_RAMWR);
+					}
+					Connector::write_data16_count(color_v, 1);
+				}
+				else if (bg_color)
+					Connector::write_data16_count(bg_color_v, 1);
+			}
+			x++;
 		}
 	}
 }
