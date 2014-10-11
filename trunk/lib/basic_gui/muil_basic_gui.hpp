@@ -5,15 +5,6 @@
 
 namespace muil {
 
-enum class Rotation
-{
-	Undefined,
-	Portrait,
-	Album,
-	Portrait180,
-	Album180,
-};
-
 enum class HorizAlign
 {
 	Left,
