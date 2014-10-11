@@ -201,7 +201,13 @@ static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const Fon
 		color,
 		bg_color
 	);
-	x += char_info->widthBits + font->spacePixels;
+
+	x += char_info->widthBits;
+
+	if (bg_color)
+		display_fill_rect(x, y, x + font->spacePixels-1, y + font->heightPages - 1, *bg_color);
+
+	x += font->spacePixels;
 }
 
 
