@@ -94,7 +94,6 @@ void ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::write_data16_count
 	SPI::template cs_high<CSPin>();
 }
 
-
 template <typename SPI, typename CSPin, typename ResetPin, typename DCPin>
 uint8_t ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::read_reg(uint8_t reg, uint8_t offset)
 {
@@ -322,7 +321,7 @@ uint32_t ILI9341Display<Connector>::init()
 	delay_ms(120);
 	Connector::write_command(ILI9341_DISPON); //Display on
 
-	set_rotation(Rotation::Album);
+	set_rotation(Rotation::Portrait);
 
 	return display_code;
 }
