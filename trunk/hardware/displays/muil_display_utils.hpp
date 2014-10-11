@@ -31,6 +31,16 @@
 #include "muil_basic_gui.hpp"
 
 namespace muil {
+
+enum class Rotation
+{
+	Undefined,
+	Portrait,
+	Album,
+	Portrait180,
+	Album180,
+};
+
 namespace detailed {
 
 inline bool check_and_correct_rect_coords(
