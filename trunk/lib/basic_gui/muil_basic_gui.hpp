@@ -113,6 +113,62 @@ struct FontInfo
 	const uint8_t*      data;        // pointer to generated array of character visual representation
 };
 
+
+class CharactersConsumer
+{
+public:
+	virtual void consume(wchar_t character) = 0;
+};
+
+
+class CharactersProvider
+{
+public:
+	virtual void provide(CharactersConsumer &consumer) const = 0;
+};
+
+
+class TextCharactersProvider : public CharactersProvider
+{
+public:
+	explicit TextCharactersProvider(const wchar_t *text);
+	void provide(CharactersConsumer &consumer) const override;
+
+private:
+	const wchar_t *text_;
+};
+
+class IntegerCharactersProvider : public CharactersProvider
+{
+public:
+	IntegerCharactersProvider(int value) : value_(value) {}
+
+	int get_value() const { return value_; }
+	void set_value(int value) { value_ = value; }
+
+protected:
+	int value_;
+};
+
+class Integer10CharactersProvider : public IntegerCharactersProvider
+{
+public:
+	explicit Integer10CharactersProvider(int value, int pt_pos);
+	void provide(CharactersConsumer &consumer) const override;
+
+private:
+	int pt_pos_;
+};
+
+
+class Integer16CharactersProvider : public IntegerCharactersProvider
+{
+public:
+	explicit Integer16CharactersProvider(unsigned value);
+	void provide(CharactersConsumer &consumer) const override;
+};
+
+
 unsigned display_get_width();
 unsigned display_get_height();
 uint16_t display_get_dpi();
@@ -125,12 +181,17 @@ void     display_fill_rect(int x1, int y1, int x2, int y2, const Color &color);
 void     display_draw_rect(const Rect &rect, int16_t width, const Color &color);
 void     display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2);
 void     display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2);
-void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color);
-void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color);
-void     display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color, const Color *bg_color);
-void     display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color, const Color *bg_color);
+
+Size     display_calc_text_size(const FontInfo &font, const CharactersProvider & provider);
+void     display_print_text(int x, int y, const CharactersProvider & provider, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_print_text_in_rect(const Rect &rect, HorizAlign align, const CharactersProvider & provider, const FontInfo &font, const Color &color, const Color *bg_color);
+
+void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_paint_integer16(int x, int y, uint32_t value, const FontInfo &font, const Color &color, const Color *bg_color);
 void     display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color);
-Size     display_get_text_size(const FontInfo *font, const wchar_t *text);
+Size     display_get_text_size(const FontInfo &font, const wchar_t *text);
 
 void     default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color);
 

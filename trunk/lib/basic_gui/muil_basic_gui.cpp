@@ -3,6 +3,14 @@
 
 namespace muil {
 
+const FontCharInfo* display_find_char_info(const FontInfo &font, wchar_t chr)
+{
+	for (size_t i = 0; font.charInfo[i].character; i++)
+		if (chr == font.charInfo[i].character) return &font.charInfo[i];
+	return NULL;
+}
+
+
 template <typename T> void swap(T &v1, T &v2)
 {
 	T tmp(v1);
@@ -10,20 +18,24 @@ template <typename T> void swap(T &v1, T &v2)
 	v2 = tmp;
 }
 
+
 template <typename T> T abs(const T v)
 {
 	return (v >= 0) ? v : -v;
 }
+
 
 template <typename T> T max(const T v1, const T v2)
 {
 	return v1 > v2 ? v1 : v2;
 }
 
+
 template <typename T> T min(const T v1, const T v2)
 {
 	return v1 < v2 ? v1 : v2;
 }
+
 
 static uint8_t correct_color_value(int value)
 {
@@ -31,6 +43,8 @@ static uint8_t correct_color_value(int value)
 	if (value > 255) return 255;
 	return value & 0xFF;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Color Color::light(int value) const
 {
@@ -41,6 +55,7 @@ Color Color::light(int value) const
 	);
 }
 
+
 Color Color::adjusted(int multiplier, int divider)
 {
 	return Color(
@@ -49,6 +64,7 @@ Color Color::adjusted(int multiplier, int divider)
 		correct_color_value((b * multiplier) / divider)
 	);
 }
+
 
 Color Color::between(const Color &color1, const Color &color2, int16_t value, int16_t max)
 {
@@ -66,15 +82,18 @@ Rect Rect::inflated(int value) const
 	return Rect(x1-value, y1-value, x2+value, y2+value);
 }
 
+
 bool Rect::contains(const Point pt) const
 {
 	return (x1 <= pt.x) && (pt.x <= x2) && (y1 <= pt.y) && (pt.y <= y2);
 }
 
+
 static bool interv_intersects(int16_t a1, int16_t a2, int16_t b1, int16_t b2)
 {
 	return !(a2 < b1) && !(a1 < b2);
 }
+
 
 bool Rect::intersects(const Rect &other_rect) const
 {
@@ -85,144 +104,38 @@ bool Rect::intersects(const Rect &other_rect) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const FontCharInfo* display_find_char_info(const FontInfo *font, wchar_t chr)
+TextCharactersProvider::TextCharactersProvider(const wchar_t *text) 
+	: text_(text)
+{}
+
+
+void TextCharactersProvider::provide(CharactersConsumer &consumer) const
 {
-	for (size_t i = 0; font->charInfo[i].character; i++)
-		if (chr == font->charInfo[i].character) return &font->charInfo[i];
-	return NULL;
+	for (auto ptr = text_; *ptr; ptr++) consumer.consume(*ptr);
 }
 
-void display_draw_rect(const Rect &rect, int16_t width, const Color &color)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Integer10CharactersProvider::Integer10CharactersProvider(int value, int pt_pos) 
+	: IntegerCharactersProvider(value),
+	pt_pos_(pt_pos)
+{}
+
+
+void Integer10CharactersProvider::provide(CharactersConsumer &consumer) const
 {
-	width--;
-	display_fill_rect(rect.x1, rect.y1+width, rect.x1+width, rect.y2-width, color);
-	display_fill_rect(rect.x2-width, rect.y1+width, rect.x2, rect.y2-width, color);
-	display_fill_rect(rect.x1+width, rect.y1, rect.x2-width, rect.y1+width, color);
-	display_fill_rect(rect.x1+width, rect.y2-width, rect.x2-width, rect.y2, color);
-}
+	int value = value_;
+	int pt_pos = pt_pos_;
 
-void display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2)
-{
-	const uint16_t height = rect.y2 - rect.y1;
-	for (int16_t y = rect.y1, i = 0; y <= rect.y2; y++, i++)
-		display_fill_rect(rect.x1, y, rect.x2, y, Color::between(color1, color2, i, height));
-}
-
-void display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2)
-{
-	const uint16_t width = rect.x2 - rect.x1;
-	for (int x = rect.x1, i = 0; x <= rect.x2; x++, i++)
-		display_fill_rect(x, rect.y1, x, rect.y2, Color::between(color1, color2, i, width));
-}
-
-void display_paint_text(int x, int y, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color)
-{
-	for (size_t i = 0; text[i]; i++)
-	{
-		if (text[i] == ' ')
-		{
-			x += 2*font->spacePixels;
-			continue;
-		}
-		const FontCharInfo* char_info = display_find_char_info(font, text[i]);
-		if (char_info == NULL) char_info = display_find_char_info(font, '?');
-		display_paint_character(
-			x, y,
-			&font->data[char_info->offset],
-			char_info->widthBits,
-			font->heightPages,
-			color,
-			bg_color
-		);
-		x += char_info->widthBits + font->spacePixels;
-	}
-}
-
-void display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo *font, const Color &color, const Color *bg_color)
-{
-	const Size text_size = display_get_text_size(font, text);
-
-	int16_t x;
-	int16_t y = (rect.y1 + rect.y2 - text_size.height) / 2;
-	int16_t left_right_layer = text_size.height/4;
-	switch (align)
-	{
-	case HorizAlign::Left:
-		x = rect.x1 + left_right_layer;
-		break;
-
-	case HorizAlign::Center:
-		x = (rect.x1 + rect.x2 - text_size.width) / 2;
-		break;
-
-	case HorizAlign::Right:
-		x = rect.x2 - text_size.width - left_right_layer;
-		break;
-
-	default:
-		return;
-	}
-
-	display_paint_text(x, y, text, font, color, bg_color);
-}
-
-Size display_get_text_size(const FontInfo *font, const wchar_t *text)
-{
-	int width = 0;
-	for (size_t i = 0; text[i]; i++)
-	{
-		if (text[i] == ' ')
-		{
-			width += 2*font->spacePixels;
-			continue;
-		}
-		const FontCharInfo* char_info = display_find_char_info(font, text[i]);
-		if (char_info == NULL) char_info = display_find_char_info(font, '?');
-		width += char_info->widthBits;
-		if (i != 0) width += font->spacePixels;
-	}
-	return Size(width, font->heightPages);
-}
-
-static void paint_charaster_and_move_caret(wchar_t chr, int &x, int y, const FontInfo *font, const Color &color, const Color *bg_color)
-{
-	if (chr == ' ')
-	{
-		x += 2*font->spacePixels;
-		return;
-	}
-	const FontCharInfo* char_info = display_find_char_info(font, chr);
-	if (char_info == NULL) char_info = display_find_char_info(font, '?');
-	display_paint_character(
-		x, y,
-		&font->data[char_info->offset],
-		char_info->widthBits,
-		font->heightPages,
-		color,
-		bg_color
-	);
-
-	x += char_info->widthBits;
-
-	if (bg_color)
-		display_fill_rect(x, y, x + font->spacePixels-1, y + font->heightPages - 1, *bg_color);
-
-	x += font->spacePixels;
-}
-
-
-template <class Fun>
-void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
-{
 	if (value < 0)
 	{
 		value = -value;
-		out_char_fun('-');
+		consumer.consume('-');
 	}
 
 	int comp_value = 1000000000;
 
-	if (pt_pos != -1) pt_pos = 9-pt_pos;
+	if (pt_pos != -1) pt_pos = 9 - pt_pos;
 
 	bool begin = true;
 	do
@@ -235,53 +148,264 @@ void print_integer10(int32_t value, int pt_pos, const Fun &out_char_fun)
 		}
 		if (chr != '0') begin = false;
 		if (!begin || (comp_value == 1))
-			out_char_fun(chr);
+			consumer.consume(chr);
 		comp_value /= 10;
 		if ((pt_pos != -1) && (pt_pos-- == 0))
 		{
-			out_char_fun('.');
+			consumer.consume('.');
 			begin = false;
 		}
-	}
+	} 
 	while (comp_value != 0);
 }
 
-void display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo *font, const Color &color, const Color *bg_color)
-{
-	auto paint_char_fun = [&] (wchar_t chr) {
-		paint_charaster_and_move_caret(chr, x, y, font, color, bg_color);
-	};
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	print_integer10(value, pt_pos, paint_char_fun);
-}
+Integer16CharactersProvider::Integer16CharactersProvider(unsigned value) 
+	: IntegerCharactersProvider(value)
+{}
 
-template <class Fun>
-void print_integer16(uint32_t value, const Fun &out_char_fun)
+
+void Integer16CharactersProvider::provide(CharactersConsumer &consumer) const
 {
+	unsigned value = value_;
 	bool begin = true;
 	for (unsigned i = 0; i < 8; i++)
 	{
 		uint32_t val = (value & 0xF0000000) >> 28;
 		wchar_t chr = (val < 10) ? (val + '0') : (val - 10 + 'A');
 		if ((val != 0) || (i == 7)) begin = false;
-		if (!begin) out_char_fun(chr);
+		if (!begin) consumer.consume(chr);
 		value <<= 4;
 	}
 }
 
-void display_paint_integer16(int x, int y, uint32_t value, const FontInfo *font, const Color &color, const Color *bg_color)
-{
-	auto paint_char_fun = [&] (wchar_t chr) {
-		paint_charaster_and_move_caret(chr, x, y, font, color, bg_color);
-	};
 
-	print_integer16(value, paint_char_fun);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CharactersPrinter : public CharactersConsumer
+{
+public:
+	CharactersPrinter(
+		int            x, 
+		int            y, 
+		const FontInfo &font, 
+		const Color    &color, 
+		const Color    *bg_color
+	) : 
+		x_(x), 
+		y_(y), 
+		font_(font), 
+		color_(color), 
+		bg_color_(bg_color)
+	{}
+
+	void consume(wchar_t character) override
+	{
+		if (character == ' ')
+		{
+			x_ += 2 * font_.spacePixels;
+			return;
+		}
+		const FontCharInfo* char_info = display_find_char_info(font_, character);
+		if (char_info == nullptr) char_info = display_find_char_info(font_, '?');
+		if (char_info == nullptr) return;
+		display_paint_character(
+			x_, y_,
+			&font_.data[char_info->offset],
+			char_info->widthBits,
+			font_.heightPages,
+			color_,
+			bg_color_
+			);
+		x_ += char_info->widthBits + font_.spacePixels;
+	}
+
+private:
+	int x_;
+	int y_;
+	const FontInfo& font_;
+	const Color &color_;
+	const Color *bg_color_;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class TextWidthCalculator : public CharactersConsumer
+{
+public:
+	TextWidthCalculator(const FontInfo &font) : font_(font) {}
+
+	void consume(wchar_t character) override
+	{
+		if (character == ' ')
+		{
+			width_ += 2 * font_.spacePixels;
+			return;
+		}
+		const FontCharInfo* char_info = display_find_char_info(font_, character);
+		if (char_info == nullptr) char_info = display_find_char_info(font_, '?');
+		if (char_info == nullptr) return;
+		width_ += char_info->widthBits + font_.spacePixels;
+	}
+
+	unsigned get_result() const
+	{
+		return (width_ > font_.spacePixels) ? (width_ - font_.spacePixels) : 0;
+	}
+
+private:
+	const FontInfo& font_;
+	unsigned width_ = 0;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void display_draw_rect(const Rect &rect, int16_t width, const Color &color)
+{
+	width--;
+	display_fill_rect(rect.x1, rect.y1+width, rect.x1+width, rect.y2-width, color);
+	display_fill_rect(rect.x2-width, rect.y1+width, rect.x2, rect.y2-width, color);
+	display_fill_rect(rect.x1+width, rect.y1, rect.x2-width, rect.y1+width, color);
+	display_fill_rect(rect.x1+width, rect.y2-width, rect.x2-width, rect.y2, color);
 }
+
+
+void display_draw_vertical_gradient(const Rect &rect, const Color &color1, const Color &color2)
+{
+	const uint16_t height = rect.y2 - rect.y1;
+	for (int16_t y = rect.y1, i = 0; y <= rect.y2; y++, i++)
+		display_fill_rect(rect.x1, y, rect.x2, y, Color::between(color1, color2, i, height));
+}
+
+
+void display_draw_horizontal_gradient(const Rect &rect, const Color &color1, const Color &color2)
+{
+	const uint16_t width = rect.x2 - rect.x1;
+	for (int x = rect.x1, i = 0; x <= rect.x2; x++, i++)
+		display_fill_rect(x, rect.y1, x, rect.y2, Color::between(color1, color2, i, width));
+}
+
+
+Size display_calc_text_size(const FontInfo &font, const CharactersProvider & provider)
+{
+	TextWidthCalculator calculator(font);
+	provider.provide(calculator);
+	return Size(calculator.get_result(), font.heightPages);
+}
+
+
+void display_print_text(
+	int                      x, 
+	int                      y, 
+	const CharactersProvider &provider, 
+	const FontInfo           &font, 
+	const Color              &color, 
+	const Color              *bg_color)
+{
+	CharactersPrinter printer(x, y, font, color, bg_color);
+	provider.provide(printer);
+}
+
+
+void display_print_text_in_rect(
+	const Rect               &rect, 
+	HorizAlign               align, 
+	const CharactersProvider &provider, 
+	const FontInfo           &font, 
+	const Color              &color, 
+	const Color              *bg_color)
+{
+	const Size text_size = display_calc_text_size(font, provider);
+
+	int16_t x;
+	int16_t y = (rect.y1 + rect.y2 - text_size.height) / 2;
+	switch (align)
+	{
+	case HorizAlign::Left:
+		x = rect.x1;
+		break;
+
+	case HorizAlign::Center:
+		x = (rect.x1 + rect.x2 - text_size.width) / 2;
+		break;
+
+	case HorizAlign::Right:
+		x = rect.x2 - text_size.width;
+		break;
+
+	default:
+		return;
+	}
+
+	display_print_text(x, y, provider, font, color, bg_color);
+}
+
+void display_paint_text(
+	int            x, 
+	int            y, 
+	const wchar_t  *text, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
+{
+	TextCharactersProvider provider(text);
+	display_print_text(x, y, provider, font, color, bg_color);
+}
+
+
+void display_paint_text_in_rect(
+	const Rect     &rect, 
+	HorizAlign     align, 
+	const wchar_t  *text, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
+{
+	TextCharactersProvider provider(text);
+	display_print_text_in_rect(rect, align, provider, font, color, bg_color);
+}
+
+
+Size display_get_text_size(const FontInfo &font, const wchar_t *text)
+{
+	TextCharactersProvider provider(text);
+	return display_calc_text_size(font, provider);
+}
+
+
+void display_paint_integer(
+	int            x, 
+	int            y, 
+	int            value, 
+	int            pt_pos, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
+{
+	Integer10CharactersProvider provider(value, pt_pos);
+	display_print_text(x, y, provider, font, color, bg_color);
+}
+
+
+void display_paint_integer16(
+	int            x, 
+	int            y, 
+	uint32_t       value, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
+{
+	Integer16CharactersProvider provider(value);
+	display_print_text(x, y, provider, font, color, bg_color);
+}
+
 
 void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
 {
 	display_fill_rect(Rect(x1, y1, x2, y2), color);
 }
+
 
 void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color)
 {
@@ -342,7 +466,15 @@ void display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const
 	}
 }
 
-void default_display_paint_character(int x0, int y0, const uint8_t *data, uint8_t width, uint8_t height, const Color &color, const Color *bg_color)
+
+void default_display_paint_character(
+	int           x0, 
+	int           y0, 
+	const uint8_t *data, 
+	uint8_t       width, 
+	uint8_t       height, 
+	const Color   &color, 
+	const Color   *bg_color)
 {
 	const uint16_t w8 = (width + 7) / 8;
 	int16_t y = y0;

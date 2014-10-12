@@ -126,7 +126,7 @@ public:
 	Color get_default_color(const FormColors &colors) const override;
 
 protected:
-	virtual const wchar_t* get_text() = 0;
+	virtual const CharactersProvider& get_text_provider() const = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,18 +134,18 @@ protected:
 class ValueIndicator : public Indicator
 {
 public:
-	ValueIndicator(int value = 0, uint8_t dec_pt = 0) :
-		value_(value),
-		dec_pt_(dec_pt) {}
+	ValueIndicator(int value = 0, int8_t dec_pt = 0) : provider_(value, dec_pt) {}
 
 	void set_value(int value);
 
 protected:
-	const wchar_t* get_text();
+	const CharactersProvider& get_text_provider() const override
+	{
+		return provider_;
+	}
 
 private:
-	int value_;
-	uint8_t dec_pt_;
+	Integer10CharactersProvider provider_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,13 +153,16 @@ private:
 class TextIndicator : public Indicator
 {
 public:
-	TextIndicator(const wchar_t* text) : text_(text) {}
+	TextIndicator(const wchar_t* text) : provider_(text) {}
 
 protected:
-	const wchar_t* get_text() { return text_; }
+	const CharactersProvider& get_text_provider() const override
+	{
+		return provider_;
+	}
 
 private:
-	const wchar_t* text_;
+	TextCharactersProvider provider_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,7 +224,7 @@ private:
 class UpDownWidget : public Widget
 {
 public:
-	UpDownWidget(uint8_t dec_pt = 0, int value = 0, int min = INT_MIN, int max = INT_MAX) :
+	UpDownWidget(int8_t dec_pt = 0, int value = 0, int min = INT_MIN, int max = INT_MAX) :
 		value_ (value),
 		max_   (max),
 		min_   (min),
@@ -242,7 +245,7 @@ private:
 	int value_;
 	int max_;
 	int min_;
-	uint8_t dec_pt_;
+	int8_t dec_pt_;
 
 	void get_buttons_rects(const Size &size, Rect &up_btn_rect, Rect &down_btn_rect);
 };
@@ -300,11 +303,11 @@ private:
 class Form
 {
 public:
-	Form(const wchar_t *caption, const FontInfo *font, const FormColors *colors = NULL);
+	Form(const wchar_t *caption, const FontInfo &font, const FormColors *colors = NULL);
 
 	void show();
 
-	const FontInfo* get_font() const { return font_; }
+	const FontInfo& get_font() const { return font_; }
 
 	ModalResult show_modal();
 
@@ -337,7 +340,7 @@ protected:
 
 private:
 	const wchar_t *caption_;
-	const FontInfo *font_;
+	const FontInfo &font_;
 	volatile ModalResult modal_result_;
 };
 
@@ -354,7 +357,7 @@ public:
 class WidgetsForm : public Form
 {
 public:
-	WidgetsForm(const wchar_t *caption, const FontInfo *font) :
+	WidgetsForm(const wchar_t *caption, const FontInfo &font) :
 		Form(caption, font),
 		last_pressed_widget_(NULL) {}
 
@@ -381,7 +384,7 @@ private:
 class StringSelectorForm : public Form
 {
 public:
-	StringSelectorForm(const wchar_t *caption, const FontInfo *font, const IStringItemsProvider *items_provider, int selection) :
+	StringSelectorForm(const wchar_t *caption, const FontInfo &font, const IStringItemsProvider *items_provider, int selection) :
 		Form(caption, font),
 		items_provider_(items_provider),
 		selection_(selection),
@@ -415,7 +418,7 @@ private:
 class DialogForm : public WidgetsForm
 {
 public:
-	DialogForm(const wchar_t *caption, const FontInfo *font) : WidgetsForm(caption, font) {}
+	DialogForm(const wchar_t *caption, const FontInfo &font) : WidgetsForm(caption, font) {}
 
 protected:
 	void visit_all_widgets(IWidgetVisitor &visitor) override;
