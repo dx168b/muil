@@ -104,9 +104,9 @@ protected:
 class Indicator : public Widget
 {
 public:
-	Indicator(uint32_t align_flags = FLAG_ALIGN_LEFT)
+	Indicator(uint32_t flags = FLAG_ALIGN_LEFT)
 	{
-		flags_.on(align_flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER));
+		flags_.on(flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER | FLAG_NO_BG_COLOR));
 	}
 
 	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
@@ -115,6 +115,7 @@ public:
 	static const uint32_t FLAG_ALIGN_LEFT = 0x10000;
 	static const uint32_t FLAG_ALIGN_RIGHT = 0x20000;
 	static const uint32_t FLAG_ALIGN_CENTER = 0x40000;
+	static const uint32_t FLAG_NO_BG_COLOR = 0x8000;
 
 protected:
 	virtual const CharactersProvider& get_text_provider() const = 0;
@@ -147,8 +148,8 @@ private:
 class Label : public Indicator
 {
 public:
-	Label(const wchar_t* text, uint32_t align_flags = FLAG_ALIGN_LEFT)
-		: Indicator(align_flags), 
+	Label(const wchar_t* text, uint32_t flags = FLAG_ALIGN_LEFT | FLAG_NO_BG_COLOR)
+		: Indicator(flags), 
 		provider_(text) {}
 
 protected:

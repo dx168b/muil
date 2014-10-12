@@ -79,6 +79,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\basic_gui\fonts\fira-mono24_digits.cpp" />
+    <ClCompile Include="..\..\lib\basic_gui\fonts\fira-mono48_digits.cpp" />
     <ClCompile Include="..\..\lib\basic_gui\fonts\tahoma14_ru.cpp" />
     <ClCompile Include="..\..\lib\basic_gui\muil_basic_gui.cpp" />
     <ClCompile Include="..\..\lib\muil.cpp" />
@@ -86,10 +88,13 @@
     <ClCompile Include="..\..\lib\styles\muil_style_vista.cpp" />
     <ClCompile Include="..\..\lib\styles\muil_style_win95.cpp" />
     <ClCompile Include="..\..\samples\forms\PINForm.cpp" />
+    <ClCompile Include="..\..\samples\forms\WidgetsForm.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="muil-win32.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lib\basic_gui\fonts\fira-mono24_digits.hpp" />
+    <ClInclude Include="..\..\lib\basic_gui\fonts\fira-mono48_digits.hpp" />
     <ClInclude Include="..\..\lib\basic_gui\fonts\tahoma14_ru.hpp" />
     <ClInclude Include="..\..\lib\basic_gui\muil_basic_gui.hpp" />
     <ClInclude Include="..\..\lib\muil.hpp" />
@@ -99,6 +104,7 @@
     <ClInclude Include="..\..\lib\styles\muil_style_vista.hpp" />
     <ClInclude Include="..\..\lib\styles\muil_style_win95.hpp" />
     <ClInclude Include="..\..\samples\forms\PINForm.hpp" />
+    <ClInclude Include="..\..\samples\forms\WidgetsForm.hpp" />
     <ClInclude Include="muil-win32.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

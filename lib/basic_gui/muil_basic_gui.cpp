@@ -260,7 +260,7 @@ public:
 
 	unsigned get_result() const
 	{
-		return (width_ > font_.spacePixels) ? (width_ - font_.spacePixels) : 0;
+		return width_;
 	}
 
 private:

@@ -24,6 +24,15 @@
     <ClCompile Include="..\..\lib\basic_gui\fonts\tahoma14_ru.cpp">
       <Filter>lib\basic_gui\fonts</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\samples\forms\WidgetsForm.cpp">
+      <Filter>samples\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\basic_gui\fonts\fira-mono24_digits.cpp">
+      <Filter>lib\basic_gui\fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\basic_gui\fonts\fira-mono48_digits.cpp">
+      <Filter>lib\basic_gui\fonts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -72,6 +81,15 @@
       <Filter>lib\basic_gui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\lib\basic_gui\fonts\tahoma14_ru.hpp">
+      <Filter>lib\basic_gui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\samples\forms\WidgetsForm.hpp">
+      <Filter>samples\forms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\basic_gui\fonts\fira-mono24_digits.hpp">
+      <Filter>lib\basic_gui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\basic_gui\fonts\fira-mono48_digits.hpp">
       <Filter>lib\basic_gui\fonts</Filter>
     </ClInclude>
   </ItemGroup>

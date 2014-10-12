@@ -2,7 +2,7 @@
 
 PINForm::PINForm(const wchar_t *caption, const muil::FontInfo &font, wchar_t *pin_text_buffer, uint8_t pin_len) :
 	muil::WidgetsForm(caption, font),
-	pin_    (pin_text_buffer),
+	pin_(pin_text_buffer, muil::Label::FLAG_ALIGN_CENTER),
 	pin_len_(pin_len),
 	pin_text_buffer_(pin_text_buffer)
 {
