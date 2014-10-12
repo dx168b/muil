@@ -14,7 +14,7 @@ protected:
 	void get_widget_color(const muil::Widget *widget, muil::Color &color) override;
 
 private:
-	muil::TextIndicator pin_;
+	muil::Label pin_;
 	muil::Button btn_clr_;
 	muil::Button btn1_;
 	muil::Button btn2_;

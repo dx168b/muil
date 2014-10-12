@@ -176,47 +176,22 @@ void Widget::refresh()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Label::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
-{
-	HorizAlign horiz_align = HorizAlign::Left;
-	if (flags_.get(FLAG_ALIGN_RIGHT)) horiz_align = HorizAlign::Right;
-	else if (flags_.get(FLAG_ALIGN_CENTER)) horiz_align = HorizAlign::Center;
-
-	Rect rect(Point(0, 0), widget_pd.size);
-	display_paint_text_in_rect(
-		rect,
-		horiz_align,
-		widget_pd.text,
-		paint_data.font,
-		paint_data.colors->form_text,
-		nullptr
-	);
-}
-
-Color Label::get_default_color(const FormColors &colors) const
-{
-	return colors.form_bg;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd)
 {
 	Rect rect(Point(0, 0), widget_pd.size);
-	display_fill_rect(rect, widget_pd.color);
 	display_print_text_in_rect(
 		rect,
 		HorizAlign::Center,
 		get_text_provider(),
 		paint_data.font,
 		paint_data.colors->form_text,
-		nullptr
+		&widget_pd.color
 	);
 }
 
 Color Indicator::get_default_color(const FormColors &colors) const
 {
-	return Color::white();
+	return colors.caption;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

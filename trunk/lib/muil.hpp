@@ -101,29 +101,20 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Label : public Widget
+class Indicator : public Widget
 {
 public:
-	Label(uint32_t align_flags = FLAG_ALIGN_LEFT)
+	Indicator(uint32_t align_flags = FLAG_ALIGN_LEFT)
 	{
 		flags_.on(align_flags & (FLAG_ALIGN_LEFT | FLAG_ALIGN_RIGHT | FLAG_ALIGN_CENTER));
 	}
 
-	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd) override;
-	Color get_default_color(const FormColors &colors) const override;
-
-	static const uint32_t FLAG_ALIGN_LEFT   = 0x10000;
-	static const uint32_t FLAG_ALIGN_RIGHT  = 0x20000;
-	static const uint32_t FLAG_ALIGN_CENTER = 0x40000;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class Indicator : public Widget
-{
-public:
 	void paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPaintData &widget_pd);
 	Color get_default_color(const FormColors &colors) const override;
+
+	static const uint32_t FLAG_ALIGN_LEFT = 0x10000;
+	static const uint32_t FLAG_ALIGN_RIGHT = 0x20000;
+	static const uint32_t FLAG_ALIGN_CENTER = 0x40000;
 
 protected:
 	virtual const CharactersProvider& get_text_provider() const = 0;
@@ -134,7 +125,10 @@ protected:
 class ValueIndicator : public Indicator
 {
 public:
-	ValueIndicator(int value = 0, int8_t dec_pt = 0) : provider_(value, dec_pt) {}
+	ValueIndicator(int value = 0, int8_t dec_pt = 0, uint32_t align_flags = FLAG_ALIGN_LEFT) 
+		: 
+		Indicator(align_flags),
+		provider_(value, dec_pt) {}
 
 	void set_value(int value);
 
@@ -150,10 +144,12 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class TextIndicator : public Indicator
+class Label : public Indicator
 {
 public:
-	TextIndicator(const wchar_t* text) : provider_(text) {}
+	Label(const wchar_t* text, uint32_t align_flags = FLAG_ALIGN_LEFT)
+		: Indicator(align_flags), 
+		provider_(text) {}
 
 protected:
 	const CharactersProvider& get_text_provider() const override
