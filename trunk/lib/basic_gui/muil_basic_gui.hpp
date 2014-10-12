@@ -186,10 +186,15 @@ Size     display_calc_text_size(const FontInfo &font, const CharactersProvider &
 void     display_print_text(int x, int y, const CharactersProvider & provider, const FontInfo &font, const Color &color, const Color *bg_color);
 void     display_print_text_in_rect(const Rect &rect, HorizAlign align, const CharactersProvider & provider, const FontInfo &font, const Color &color, const Color *bg_color);
 
-void     display_paint_text(int x, int y, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
-void     display_paint_text_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
-void     display_paint_integer(int x, int y, int value, int pt_pos, const FontInfo &font, const Color &color, const Color *bg_color);
-void     display_paint_integer16(int x, int y, uint32_t value, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_print_string(int x, int y, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_print_string_in_rect(const Rect &rect, HorizAlign align, const wchar_t *text, const FontInfo &font, const Color &color, const Color *bg_color);
+
+void     display_print_integer(int x, int y, int value, int pt_pos, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_print_integer_in_rect(const Rect &rect, HorizAlign align, int value, int pt_pos, const FontInfo &font, const Color &color, const Color *bg_color);
+
+void     display_print_integer16(int x, int y, uint32_t value, const FontInfo &font, const Color &color, const Color *bg_color);
+void     display_print_integer16_in_rect(const Rect &rect, HorizAlign align, uint32_t value, const FontInfo &font, const Color &color, const Color *bg_color);
+
 void     display_fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3, const Color &color);
 Size     display_get_text_size(const FontInfo &font, const wchar_t *text);
 

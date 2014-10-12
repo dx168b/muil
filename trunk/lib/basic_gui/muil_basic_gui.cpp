@@ -270,6 +270,13 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
+{
+	display_fill_rect(Rect(x1, y1, x2, y2), color);
+}
+
+
 void display_draw_rect(const Rect &rect, int16_t width, const Color &color)
 {
 	width--;
@@ -357,7 +364,7 @@ void display_print_text_in_rect(
 	}
 }
 
-void display_paint_text(
+void display_print_string(
 	int            x, 
 	int            y, 
 	const wchar_t  *text, 
@@ -370,7 +377,7 @@ void display_paint_text(
 }
 
 
-void display_paint_text_in_rect(
+void display_print_string_in_rect(
 	const Rect     &rect, 
 	HorizAlign     align, 
 	const wchar_t  *text, 
@@ -390,7 +397,7 @@ Size display_get_text_size(const FontInfo &font, const wchar_t *text)
 }
 
 
-void display_paint_integer(
+void display_print_integer(
 	int            x, 
 	int            y, 
 	int            value, 
@@ -404,7 +411,21 @@ void display_paint_integer(
 }
 
 
-void display_paint_integer16(
+void display_print_integer_in_rect(
+	const Rect     &rect, 
+	HorizAlign     align, 
+	int            value, 
+	int            pt_pos, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
+{
+	Integer10CharactersProvider provider(value, pt_pos);
+	display_print_text_in_rect(rect, align, provider, font, color, bg_color);
+}
+
+
+void display_print_integer16(
 	int            x, 
 	int            y, 
 	uint32_t       value, 
@@ -417,9 +438,16 @@ void display_paint_integer16(
 }
 
 
-void display_fill_rect(int x1, int y1, int x2, int y2, const Color &color)
+void display_print_integer16_in_rect(
+	const Rect     &rect, 
+	HorizAlign     align, 
+	uint32_t       value, 
+	const FontInfo &font, 
+	const Color    &color, 
+	const Color    *bg_color)
 {
-	display_fill_rect(Rect(x1, y1, x2, y2), color);
+	Integer16CharactersProvider provider(value);
+	display_print_text_in_rect(rect, align, provider, font, color, bg_color);
 }
 
 
