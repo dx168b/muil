@@ -234,7 +234,7 @@ void Button::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 {
 	Rect rect(Point(0, 0), widget_pd.size);
 	draw_button(rect, widget_pd.color, flags_.get(FLAG_PRESSED) ? ButtonStyle::Pressed : ButtonStyle::Normal, false);
-	display_paint_text_in_rect(
+	display_print_string_in_rect(
 		rect,
 		HorizAlign::Center,
 		widget_pd.text,
@@ -259,7 +259,7 @@ void CheckBox::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetP
 	if (flags_.get(FLAG_CHECKED)) paint_check(paint_data, check_rect);
 
 	Rect tect_rect(widget_size.height+widget_size.height/6, 0, widget_size.width, widget_size.height);
-	display_paint_text_in_rect(
+	display_print_string_in_rect(
 		tect_rect,
 		HorizAlign::Left,
 		widget_pd.text,
@@ -423,7 +423,7 @@ void Choice::paint(WidgetsForm &form, FormPaintData &paint_data, const WidgetPai
 	int selection = get_selection();
 	if (selection != -1)
 	{
-		display_paint_text_in_rect(
+		display_print_string_in_rect(
 			data_rect,
 			HorizAlign::Left,
 			items_provider_.get_item(selection),
@@ -497,7 +497,7 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 	{
 		display_set_offset(0, 0);
 		display_fill_rect(caption_rect, colors_->caption);
-		display_paint_text_in_rect(caption_rect, HorizAlign::Center, caption_, font_, colors_->caption_text, nullptr);
+		display_print_string_in_rect(caption_rect, HorizAlign::Center, caption_, font_, colors_->caption_text, nullptr);
 	}
 
 	paint_client_area(paint_data, client_rect, force_repaint_all_widgets);
@@ -754,7 +754,7 @@ int16_t StringSelectorForm::paint_item(
 	if (!is_selected) display_fill_rect(item_rect, sel_color);
 	else display_draw_vertical_gradient(item_rect, sel_color.light(64), sel_color);
 
-	display_paint_text_in_rect(
+	display_print_string_in_rect(
 		item_rect,
 		HorizAlign::Left,
 		items_provider_->get_item(item_index),
