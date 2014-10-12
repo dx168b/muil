@@ -191,7 +191,10 @@ void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const Widget
 
 Color Indicator::get_default_color(const FormColors &colors) const
 {
-	return colors.caption;
+	return 
+		  flags_.get(FLAG_NO_BG_COLOR)
+		? colors.form_bg
+		: colors.caption;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
