@@ -1,6 +1,6 @@
 #include "PINForm.hpp"
 
-PINForm::PINForm(const wchar_t *caption, const muil::FontInfo *font, wchar_t *pin_text_buffer, uint8_t pin_len) :
+PINForm::PINForm(const wchar_t *caption, const muil::FontInfo &font, wchar_t *pin_text_buffer, uint8_t pin_len) :
 	muil::WidgetsForm(caption, font),
 	pin_    (pin_text_buffer),
 	pin_len_(pin_len),

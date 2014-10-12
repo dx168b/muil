@@ -36,7 +36,7 @@ namespace muil {
 
 struct FormPaintData
 {
-	const FontInfo   *font;
+	const FontInfo   &font;
 	const FormColors *colors;
 };
 
@@ -48,34 +48,6 @@ struct WidgetPaintData
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static bool print_number(wchar_t *buffer, uint8_t buffer_len, int value, int pt)
-{
-	bool is_negative = value < 0;
-	if (is_negative) value = -value;
-	int tmp = value;
-	uint8_t len = 0;
-	while (tmp) { tmp /= 10; len++; }
-
-	if (len < (pt+1)) len = pt+1;
-
-	if (len + ((is_negative ? 1 : 0) + (pt != 0 ? 1 : 0) + 1) > buffer_len) return false;
-
-	if (is_negative) *buffer++ = '-';
-
-	buffer += len;
-	if (pt != 0) buffer++;
-	*buffer-- = 0;
-
-	for (uint8_t i = 0; i < len; i++)
-	{
-		if ((pt != 0) && (i == pt)) *buffer-- = '.';
-		*buffer-- = '0' + value % 10;
-		value /= 10;
-	}
-
-	return true;
-}
 
 static void paint_tirangle(
 	FormPaintData &paint_data,
@@ -232,10 +204,10 @@ void Indicator::paint(WidgetsForm &form, FormPaintData &paint_data, const Widget
 {
 	Rect rect(Point(0, 0), widget_pd.size);
 	display_fill_rect(rect, widget_pd.color);
-	display_paint_text_in_rect(
+	display_print_text_in_rect(
 		rect,
 		HorizAlign::Center,
-		get_text(),
+		get_text_provider(),
 		paint_data.font,
 		paint_data.colors->form_text,
 		nullptr
@@ -251,16 +223,9 @@ Color Indicator::get_default_color(const FormColors &colors) const
 
 void ValueIndicator::set_value(int value)
 {
-	if (value_ == value) return;
-	value_ = value;
+	if (provider_.get_value() == value) return;
+	provider_.set_value(value);
 	refresh();
-}
-
-const wchar_t* ValueIndicator::get_text()
-{
-	static wchar_t buffer[12];
-	print_number(buffer, 12, value_, dec_pt_);
-	return buffer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -385,12 +350,12 @@ void UpDownWidget::paint(WidgetsForm &form, FormPaintData &paint_data, const Wid
 
 	paint_tirangle(paint_data, layer, down_btn_rect, false);
 
-	wchar_t text_buf[10] = {0};
-	print_number(text_buf, 10, value_, dec_pt_);
-	display_paint_text_in_rect(
+	Integer10CharactersProvider provider(value_, dec_pt_);
+
+	display_print_text_in_rect(
 		Rect(0, 0, up_btn_rect.x1, widget_pd.size.height),
 		HorizAlign::Center,
-		text_buf,
+		provider,
 		paint_data.font,
 		paint_data.colors->form_text,
 		nullptr
@@ -534,7 +499,7 @@ struct FormTouchScreenEventData
 	Point pt;
 };
 
-Form::Form(const wchar_t *caption, const FontInfo *font, const FormColors *colors) :
+Form::Form(const wchar_t *caption, const FontInfo &font, const FormColors *colors) :
 	caption_     (caption),
 	font_        (font),
 	modal_result_(ModalResult::None)
@@ -562,7 +527,7 @@ void Form::paint(bool widgets_only, bool force_repaint_all_widgets)
 
 int16_t Form::get_caption_height() const
 {
-	return 3 * font_->heightPages / 2;
+	return 3 * font_.heightPages / 2;
 }
 
 void Form::get_form_rects(Rect *caption_rect, Rect *client_rect) const
@@ -828,7 +793,7 @@ void StringSelectorForm::get_form_data(StringSelectorFormData &data)
 	get_form_rects(NULL, &data.client_rect);
 	int16_t client_height = data.client_rect.height();
 	data.item_count = items_provider_->get_items_count();
-	data.item_height = 3*get_font()->heightPages/2;
+	data.item_height = 3*get_font().heightPages/2;
 	data.visible_count = client_height / data.item_height;
 
 	if (data.item_count < data.visible_count)
