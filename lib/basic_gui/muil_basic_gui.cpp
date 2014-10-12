@@ -218,7 +218,16 @@ public:
 			color_,
 			bg_color_
 			);
-		x_ += char_info->widthBits + font_.spacePixels;
+		x_ += char_info->widthBits;
+		if (bg_color_ && font_.spacePixels)
+			display_fill_rect(
+				x_, 
+				y_, 
+				x_ + font_.spacePixels - 1, 
+				y_ + font_.heightPages - 1, 
+				*bg_color_
+			);
+		x_ += font_.spacePixels;
 	}
 
 private:
@@ -318,27 +327,34 @@ void display_print_text_in_rect(
 {
 	const Size text_size = display_calc_text_size(font, provider);
 
-	int16_t x;
-	int16_t y = (rect.y1 + rect.y2 - text_size.height) / 2;
+	int16_t x1;
+	int16_t y1 = (rect.y1 + rect.y2 - text_size.height) / 2;
 	switch (align)
 	{
 	case HorizAlign::Left:
-		x = rect.x1;
+		x1 = rect.x1;
 		break;
 
 	case HorizAlign::Center:
-		x = (rect.x1 + rect.x2 - text_size.width) / 2;
+		x1 = (rect.x1 + rect.x2 - text_size.width) / 2;
 		break;
 
 	case HorizAlign::Right:
-		x = rect.x2 - text_size.width;
+		x1 = rect.x2 - text_size.width;
 		break;
-
-	default:
-		return;
 	}
 
-	display_print_text(x, y, provider, font, color, bg_color);
+	display_print_text(x1, y1, provider, font, color, bg_color);
+
+	if (bg_color)
+	{
+		int16_t x2 = x1 + text_size.width - 1;
+		int16_t y2 = y1 + text_size.height - 1;
+		display_fill_rect(rect.x1, rect.y1, x1 - 1,  rect.y2, *bg_color);
+		display_fill_rect(x2 + 1,  rect.y1, rect.x2, rect.y2, *bg_color);
+		display_fill_rect(x1,      rect.y1, x2,      y1 - 1,  *bg_color);
+		display_fill_rect(x1,      y2 + 1,  x2,      rect.y2, *bg_color);
+	}
 }
 
 void display_paint_text(
