@@ -164,7 +164,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class PressibleWidget : public Widget
+class ClickableWidget : public Widget
 {
 public:
 	static const uint32_t FLAG_PRESSED = 0x0002;
@@ -177,7 +177,7 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Button : public PressibleWidget
+class Button : public ClickableWidget
 {
 public:
 	Button(bool default_btn = false)
@@ -196,7 +196,7 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CheckBox : public PressibleWidget
+class CheckBox : public ClickableWidget
 {
 public:
 	CheckBox(bool checked = false)
@@ -272,7 +272,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Choice : public PressibleWidget
+class Choice : public ClickableWidget
 {
 public:
 	Choice(const wchar_t *caption, const IStringItemsProvider &items_provider, int selection) :
@@ -301,6 +301,7 @@ class Form
 {
 public:
 	Form(const wchar_t *caption, const FontInfo &font, const FormColors *colors = NULL);
+	~Form();
 
 	void show();
 
