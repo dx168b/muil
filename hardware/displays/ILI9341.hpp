@@ -43,6 +43,7 @@ public:
 	static void reset();
 	static void write_command(uint8_t index);
 	static void write_data(uint8_t data);
+	static void write_data16(uint16_t data);
 	static void write_data16_count(uint16_t data, unsigned count);
 	static uint8_t read_reg(uint8_t reg, uint8_t offset);
 private:
@@ -80,17 +81,21 @@ void ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::write_data(uint8_t
 }
 
 template <typename SPI, typename CSPin, typename ResetPin, typename DCPin>
-void ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::write_data16_count(uint16_t data, unsigned count)
+void ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::write_data16(uint16_t data)
 {
-	const uint8_t byte1 = data >> 8;
-	const uint8_t byte2 = data & 0xFF;
 	DCPin::on();
 	SPI::template cs_low<CSPin>();
-	for (unsigned i = 0; i < count; i++)
-	{
-		SPI::write(byte1);
-		SPI::write(byte2);
-	}
+	SPI::write(data >> 8);
+	SPI::write(data);
+	SPI::template cs_high<CSPin>();
+}
+
+template <typename SPI, typename CSPin, typename ResetPin, typename DCPin>
+void ILI9341DisplaySPIConnector<SPI, CSPin, ResetPin, DCPin>::write_data16_count(uint16_t data, unsigned count)
+{
+	DCPin::on();
+	SPI::template cs_low<CSPin>();
+	SPI::write16(data, count);
 	SPI::template cs_high<CSPin>();
 }
 
@@ -119,7 +124,7 @@ public:
 		SupportColor = 1
 	};
 
-	uint32_t init();
+	bool init();
 
 	unsigned get_width() const;
 	unsigned get_height() const;
@@ -203,7 +208,7 @@ private:
 };
 
 template <typename Connector>
-uint32_t ILI9341Display<Connector>::init()
+bool ILI9341Display<Connector>::init()
 {
 	Connector::reset();
 
@@ -212,7 +217,7 @@ uint32_t ILI9341Display<Connector>::init()
 		(Connector::read_reg(0xD3, 2) << 8) |
 		Connector::read_reg(0xD3, 3);
 
-	if (display_code != 0x9341) return display_code;
+	if (display_code != 0x9341) return false;
 
 	Connector::write_command(0xEF);
 	Connector::write_data(0x03);
@@ -323,7 +328,7 @@ uint32_t ILI9341Display<Connector>::init()
 
 	set_rotation(Rotation::Portrait);
 
-	return display_code;
+	return true;
 }
 
 template <typename Connector>
@@ -448,10 +453,10 @@ void ILI9341Display<Connector>::paint_character(
 						set_window(x, y, x, y);
 						Connector::write_command(ILI9341_RAMWR);
 					}
-					Connector::write_data16_count(color_v, 1);
+					Connector::write_data16(color_v);
 				}
 				else if (bg_color)
-					Connector::write_data16_count(bg_color_v, 1);
+					Connector::write_data16(bg_color_v);
 			}
 			x++;
 		}
